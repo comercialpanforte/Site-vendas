@@ -15,13 +15,13 @@ const payment = new Payment(client);
 
 app.post('/gerar-pix', async (req, res) => {
     const { quantidade } = req.body;
-    const precoUnitario = 45.00; 
+    const precoUnitario = 12.80; 
     const valorTotal = quantidade * precoUnitario;
 
     try {
         const request = {
             transaction_amount: valorTotal,
-            description: `Kit de Pães Especiais - Qtd: ${quantidade}`,
+            description: `Pão de forma High Protein 400g. - Qtd: ${quantidade}`,
             payment_method_id: 'pix',
             payer: {
                 email: 'cliente@exemplo.com' 
