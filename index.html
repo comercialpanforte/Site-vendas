@@ -49,12 +49,20 @@
         let qtd = 1;
         const preco = 12.80;
 
-        function mudarQtd(valor) {
-            qtd += valor;
-            if (qtd < 1) qtd = 1;
-            document.getElementById('quantidade').innerText = qtd;
-            document.getElementById('total').innerText = 'Total: R$ ' + (qtd * preco).toFixed(2).replace('.', ',');
-        }
+      function mudarQtd(valor) {
+    qtd += valor;
+    if (qtd < 1) qtd = 1;
+    
+    document.getElementById('quantidade').innerText = qtd;
+    document.getElementById('total').innerText = 'Total: R$ ' + (qtd * preco).toFixed(2).replace('.', ',');
+
+    // SEGURANÇA: Esconde o QR Code antigo sempre que alterar a quantidade
+    document.getElementById('area-pix').style.display = 'none';
+
+    // Garante que o botão de gerar fique clicável novamente
+    const btn = document.getElementById('btn-comprar');
+    btn.disabled = false;
+    btn.innerText = 'Gerar PIX';
 
         async function gerarPix() {
             const btn = document.getElementById('btn-comprar');
