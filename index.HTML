@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprar Kit Especial</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background: #f9f9f9; padding: 20px; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
+        img { width: 100%; border-radius: 8px; }
+        .contador { display: flex; justify-content: center; align-items: center; gap: 15px; margin: 20px 0; }
+        button { padding: 10px 20px; font-size: 18px; border: none; border-radius: 5px; cursor: pointer; }
+        .btn-quantidade { background: #ddd; }
+        .btn-pagar { background: #00b1ea; color: white; width: 100%; font-weight: bold; margin-top: 10px; }
+        #area-pix { display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee; }
+        #qr-code-img { width: 200px; height: 200px; margin: 10px auto; display: block; }
+        .copia-cola { background: #f1f1f1; padding: 10px; word-break: break-all; font-size: 12px; margin-bottom: 10px;}
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <!-- Substitua o link abaixo pela foto real do seu produto -->
+        <img src="https://via.placeholder.com/400x250?text=Foto+do+Produto" alt="Produto">
+        <h2>Kit de Pães Especiais</h2>
+        <p>R$ 45,00 cada</p>
+
+        <div class="contador">
+            <button class="btn-quantidade" onclick="mudarQtd(-1)">-</button>
+            <span id="quantidade" style="font-size: 20px; font-weight: bold;">1</span>
+            <button class="btn-quantidade" onclick="mudarQtd(1)">+</button>
+        </div>
+
+        <h3 id="total">Total: R$ 45,00</h3>
+
+        <button class="btn-pagar" id="btn-comprar" onclick="gerarPix()">Gerar PIX</button>
+
+        <!-- Esta área aparece após clicar em comprar -->
+        <div id="area-pix">
+            <h3>Pague com PIX</h3>
+            <p>Escaneie o QR Code ou use o Copia e Cola:</p>
+            <img id="qr-code-img" src="" alt="QR Code PIX">
+            <div class="copia-cola" id="texto-copia-cola"></div>
+            <button class="btn-quantidade" onclick="copiarCodigo()">Copiar Código PIX</button>
+        </div>
+    </div>
+
+    <script>
+        let qtd = 1;
+        const preco = 45.00;
+
+        function mudarQtd(valor) {
+            qtd += valor;
+            if (qtd < 1) qtd = 1;
+            document.getElementById('quantidade').innerText = qtd;
+            document.getElementById('total').innerText = 'Total: R$ ' + (qtd * preco).toFixed(2).replace('.', ',');
+        }
+
+        async function gerarPix() {
+            const btn = document.getElementById('btn-comprar');
+            btn.innerText = "Gerando...";
+            btn.disabled = true;
+
+            try {
+                // Comunica com nosso servidor Node.js
+                const response = await fetch('http://localhost:3000/gerar-pix', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ quantidade: qtd })
+                });
+
+                const data = await response.json();
+
+                // Mostra a área do PIX com os dados que vieram do servidor
+                document.getElementById('area-pix').style.display = 'block';
+                document.getElementById('qr-code-img').src = 'data:image/jpeg;base64,' + data.qr_code_base64;
+                document.getElementById('texto-copia-cola').innerText = data.qr_code_copia_e_cola;
+                btn.style.display = 'none'; // Esconde o botão de gerar
+
+            } catch (error) {
+                alert("Erro ao gerar pagamento.");
+                btn.innerText = "Gerar PIX";
+                btn.disabled = false;
+            }
+        }
+
+        function copiarCodigo() {
+            const texto = document.getElementById('texto-copia-cola').innerText;
+            navigator.clipboard.writeText(texto);
+            alert("Código copiado!");
+        }
+    </script>
+</body>
+</html>
