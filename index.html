@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Comprar Kit Especial</title>
+    <title>Comprar Pão de Forma High Protein</title>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; background: #f9f9f9; padding: 20px; }
         .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
@@ -22,8 +22,8 @@
     <div class="card">
         <!-- Substitua o link abaixo pela foto real do seu produto -->
         <img src="https://via.placeholder.com/400x250?text=Foto+do+Produto" alt="Produto">
-        <h2>Kit de Pães Especiais</h2>
-        <p>R$ 45,00 cada</p>
+        <h2>Pão de Forma High Protein</h2>
+        <p>R$ 12,80 cada</p>
 
         <div class="contador">
             <button class="btn-quantidade" onclick="mudarQtd(-1)">-</button>
@@ -31,7 +31,7 @@
             <button class="btn-quantidade" onclick="mudarQtd(1)">+</button>
         </div>
 
-        <h3 id="total">Total: R$ 45,00</h3>
+        <h3 id="total">Total: R$ 12,80</h3>
 
         <button class="btn-pagar" id="btn-comprar" onclick="gerarPix()">Gerar PIX</button>
 
@@ -47,7 +47,7 @@
 
     <script>
         let qtd = 1;
-        const preco = 45.00;
+        const preco = 12.80;
 
         function mudarQtd(valor) {
             qtd += valor;
