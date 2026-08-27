@@ -63,7 +63,7 @@
 
             try {
                 // Comunica com nosso servidor Node.js
-                const response = await fetch('http://site-vendas-cu7g.onrender.com/gerar-pix', { 
+                const response = await fetch('https://site-vendas-cu7g.onrender.com/gerar-pix', { 
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ quantidade: qtd })
