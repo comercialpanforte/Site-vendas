@@ -27,12 +27,26 @@
             object-fit: contain;
             margin-bottom: 5px;
         }
+        /* Caixa de destaque para o texto de Autoatendimento */
+        .badge-autoatendimento {
+            background: #e8f8f5;
+            color: #16a085;
+            font-size: 13px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            display: inline-block;
+            margin: 8px 0 12px 0;
+            border: 1px solid #d1f2eb;
+        }
         .produto-img { 
             width: 100%; 
             height: 220px; 
             object-fit: cover; 
             border-radius: 12px; 
-            margin: 15px 0;
+            margin-bottom: 15px;
             background: #eee;
         }
         h2 { margin: 10px 0 5px 0; font-size: 22px; color: #2c3e50; }
@@ -89,9 +103,14 @@
 <body>
 
     <div class="card">
-        <!-- Logo oficial carregada do repositório -->
+        <!-- Logo oficial -->
         <img src="LogoPanForteHorizontal.png" alt="Logo da Fábrica" class="logo-img">
         
+        <!-- Texto explicativo de Autoatendimento -->
+        <div>
+            <span class="badge-autoatendimento">Autoatendimento Express</span>
+        </div>
+
         <!-- Foto do produto -->
         <img src="https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=600&q=80" alt="Pão de Forma" class="produto-img">
         
