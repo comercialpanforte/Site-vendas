@@ -8,11 +8,19 @@ app.use(cors());
 
 const SPREADSHEET_ID = '1F1FnMddq0BxDjiJoaPLV9J3z7rpbo5SpyVXE035g0';
 
+function getPrivateKey() {
+    let key = process.env.GOOGLE_PRIVATE_KEY || '';
+    // Remove aspas extras se por acaso houver
+    key = key.replace(/^["']|["']$/g, '');
+    // Substitui literais \n por quebras de linha reais
+    return key.replace(/\\n/g, '\n');
+}
+
 async function getGoogleSheetsClient() {
     const auth = new google.auth.GoogleAuth({
         credentials: {
             client_email: process.env.GOOGLE_CLIENT_EMAIL,
-            private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+            private_key: getPrivateKey(),
         },
         scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
@@ -38,7 +46,6 @@ app.get('/produtos', async (req, res) => {
         res.json(produtos);
     } catch (error) {
         console.error("Erro detalhado:", error);
-        // Exibe o erro real na tela para descobrirmos a causa
         res.status(500).json({ error: "Erro real: " + error.message });
     }
 });
