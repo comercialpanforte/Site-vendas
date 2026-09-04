@@ -142,14 +142,15 @@
         <div class="form-group">
             <label for="produto-select">Selecione o Produto:</label>
             <select id="produto-select" onchange="atualizarProduto()">
-                <option value="189" data-preco="9.90">Pão de Forma Caseiro 400g - R$ 9,90</option>
-                <option value="191" data-preco="10.90">Pão de Forma Leite 400g - R$ 10,90</option>
-                <option value="190" data-preco="12.90" selected>Pão de Forma High Protein 400g - R$ 12,90</option>
-                <option value="192" data-preco="11.90">Pão de Forma Integral 400g - R$ 11,90</option>
+                <option value="189" data-preco="9.90" data-img="Caseiro.jpg">Pão de Forma Caseiro 400g - R$ 9,90</option>
+                <option value="191" data-preco="10.90" data-img="Leite.jpg">Pão de Forma Leite 400g - R$ 10,90</option>
+                <option value="190" data-preco="12.90" data-img="HighProtein.jpg" selected>Pão de Forma High Protein 400g - R$ 12,90</option>
+                <option value="192" data-preco="11.90" data-img="Integral.jpg">Pão de Forma Integral 400g - R$ 11,90</option>
             </select>
         </div>
 
-        <img src="HighProtein.jpg" id="img-produto" alt="Pão de Forma" class="produto-img">
+        <!-- A imagem agora possui um ID e muda dinamicamente -->
+        <img src="HighProtein.jpg" id="img-produto" alt="Foto do Pão" class="produto-img">
 
         <div class="contador">
             <button class="btn-qtd" onclick="mudarQtd(-1)">-</button>
@@ -178,20 +179,24 @@
         const urlParams = new URLSearchParams(window.location.search);
         const localId = urlParams.get('local') || 'expositor_principal';
         
-        // Exibe corretamente o local da URL
         document.getElementById('txt-local').innerText = '📍 Ponto: ' + localId;
 
         let qtd = 1;
 
-        function getPrecoAtual() {
+        function getOpcaoSelecionada() {
             const select = document.getElementById('produto-select');
-            const optionSelecionada = select.options[select.selectedIndex];
-            return parseFloat(optionSelecionada.getAttribute('data-preco'));
+            return select.options[select.selectedIndex];
         }
 
         function atualizarProduto() {
             qtd = 1;
             document.getElementById('quantidade').innerText = qtd;
+
+            // Atualiza a imagem com base no atributo data-img da opção escolhida
+            const opcao = getOpcaoSelecionada();
+            const novaImagem = opcao.getAttribute('data-img');
+            document.getElementById('img-produto').src = novaImagem;
+
             recalcularTotal();
             resetarPix();
         }
@@ -205,7 +210,8 @@
         }
 
         function recalcularTotal() {
-            const preco = getPrecoAtual();
+            const opcao = getOpcaoSelecionada();
+            const preco = parseFloat(opcao.getAttribute('data-preco'));
             const total = (qtd * preco).toFixed(2);
             document.getElementById('total').innerText = 'Total: R$ ' + total.replace('.', ',');
         }
