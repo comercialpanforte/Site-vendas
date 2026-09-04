@@ -20,14 +20,12 @@
             max-width: 420px; 
             margin: auto; 
         }
-        /* Estilo da Logo da Empresa */
         .logo-img {
             max-width: 160px;
             max-height: 65px;
             object-fit: contain;
             margin-bottom: 5px;
         }
-        /* Caixa de destaque para o texto de Autoatendimento */
         .badge-autoatendimento {
             background: #e8f8f5;
             color: #16a085;
@@ -41,7 +39,6 @@
             margin: 8px 0 12px 0;
             border: 1px solid #d1f2eb;
         }
-        /* Indicador do Local atual */
         .local-info {
             font-size: 12px;
             color: #7f8c8d;
@@ -113,21 +110,17 @@
 <body>
 
     <div class="card">
-        <!-- Logo oficial -->
         <img src="LogoPanForteHorizontal.png" alt="Logo da Fábrica" class="logo-img">
         
-        <!-- Texto explicativo de Autoatendimento -->
         <div>
             <span class="badge-autoatendimento">Autoatendimento Express</span>
         </div>
 
-        <!-- Indicador dinâmico do Local -->
         <div>
             <span class="local-info" id="txt-local">Local: Carregando...</span>
         </div>
 
-        <!-- Foto do produto -->
-        <img src="https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=600&q=80" alt="Pão de Forma" class="produto-img">
+        <img src="HighProtein.jpg" alt="Pão de Forma" class="produto-img">
         
         <h2>Pão de Forma High Protein</h2>
         <div class="preco-unitario">R$ 12,80 cada</div>
@@ -156,11 +149,9 @@
     </div>
 
     <script>
-        // Captura o parâmetro 'local' da URL (Ex: se o site abrir como ?local=kart_clube)
         const urlParams = new URLSearchParams(window.location.search);
         const localId = urlParams.get('local') || 'expositor_principal';
         
-        // Exibe o local amigável na tela
         document.getElementById('txt-local').innerText = 'Ponto de Venda: ' + localId;
 
         let qtd = 1;
