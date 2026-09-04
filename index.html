@@ -41,6 +41,16 @@
             margin: 8px 0 12px 0;
             border: 1px solid #d1f2eb;
         }
+        /* Indicador do Local atual */
+        .local-info {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-bottom: 15px;
+            background: #f8f9f9;
+            padding: 5px 10px;
+            border-radius: 6px;
+            display: inline-block;
+        }
         .produto-img { 
             width: 100%; 
             height: 220px; 
@@ -111,9 +121,14 @@
             <span class="badge-autoatendimento">Autoatendimento Express</span>
         </div>
 
-        <!-- Foto do produto -->
-        <img src="HighProtein.jpg" alt="Pão de Forma" class="produto-img">
+        <!-- Indicador dinâmico do Local -->
+        <div>
+            <span class="local-info" id="txt-local">Local: Carregando...</span>
+        </div>
 
+        <!-- Foto do produto -->
+        <img src="https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=600&q=80" alt="Pão de Forma" class="produto-img">
+        
         <h2>Pão de Forma High Protein</h2>
         <div class="preco-unitario">R$ 12,80 cada</div>
 
@@ -141,6 +156,13 @@
     </div>
 
     <script>
+        // Captura o parâmetro 'local' da URL (Ex: se o site abrir como ?local=kart_clube)
+        const urlParams = new URLSearchParams(window.location.search);
+        const localId = urlParams.get('local') || 'expositor_principal';
+        
+        // Exibe o local amigável na tela
+        document.getElementById('txt-local').innerText = 'Ponto de Venda: ' + localId;
+
         let qtd = 1;
         const preco = 12.80;
 
@@ -168,7 +190,11 @@
                 const response = await fetch('https://site-vendas-cu7g.onrender.com/gerar-pix', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ quantidade: qtd })
+                    body: JSON.stringify({ 
+                        local_id: localId, 
+                        produto_id: 'pao_protein', 
+                        quantidade: qtd 
+                    })
                 });
 
                 const data = await response.json();
