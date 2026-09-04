@@ -6,7 +6,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-const SPREADSHEET_ID = '1F1fNMddqg0BxDjiJoaPLVf9J3z7rpbo5SpyVXEO35g0'; // Substitua pelo seu ID real
+const SPREADSHEET_ID = '1F1FnMddq0BxDjiJoaPLV9J3z7rpbo5SpyVXE035g0'; // Substitua pelo seu ID real
 
 async function getGoogleSheetsClient() {
     const auth = new google.auth.GoogleAuth({
