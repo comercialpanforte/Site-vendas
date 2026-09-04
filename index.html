@@ -142,15 +142,11 @@
         <div class="form-group">
             <label for="produto-select">Selecione o Produto:</label>
             <select id="produto-select" onchange="atualizarProduto()">
-                <option value="189" data-preco="9.90" data-img="Caseiro.jpg">Pão de Forma Caseiro 400g - R$ 9,90</option>
-                <option value="191" data-preco="10.90" data-img="Leite.jpg">Pão de Forma Leite 400g - R$ 10,90</option>
-                <option value="190" data-preco="12.90" data-img="HighProtein.jpg" selected>Pão de Forma High Protein 400g - R$ 12,90</option>
-                <option value="192" data-preco="11.90" data-img="Integral.jpg">Pão de Forma Integral 400g - R$ 11,90</option>
+                <option value="">Carregando produtos...</option>
             </select>
         </div>
 
-        <!-- A imagem agora possui um ID e muda dinamicamente -->
-        <img src="HighProtein.jpg" id="img-produto" alt="Foto do Pão" class="produto-img">
+        <img src="" id="img-produto" alt="Foto do Pão" class="produto-img">
 
         <div class="contador">
             <button class="btn-qtd" onclick="mudarQtd(-1)">-</button>
@@ -158,7 +154,7 @@
             <button class="btn-qtd" onclick="mudarQtd(1)">+</button>
         </div>
 
-        <div class="total-parcial" id="total">Total: R$ 12,90</div>
+        <div class="total-parcial" id="total">Total: R$ 0,00</div>
 
         <button class="btn-pagar" id="btn-comprar" onclick="gerarPix()">Gerar PIX para Pagamento</button>
 
@@ -178,10 +174,36 @@
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const localId = urlParams.get('local') || 'expositor_principal';
-        
         document.getElementById('txt-local').innerText = '📍 Ponto: ' + localId;
 
         let qtd = 1;
+        let listaProdutos = [];
+
+        // Ao carregar a página, busca os produtos direto do backend/planilha
+        async function carregarProdutos() {
+            try {
+                const response = await fetch('https://site-vendas-cu7g.onrender.com/produtos');
+                listaProdutos = await response.json();
+
+                const select = document.getElementById('produto-select');
+                select.innerHTML = '';
+
+                listaProdutos.forEach((prod, index) => {
+                    const option = document.createElement('option');
+                    option.value = prod.id;
+                    option.setAttribute('data-preco', prod.preco);
+                    option.setAttribute('data-img', prod.imagem);
+                    option.innerText = `${prod.nome} - R$ ${prod.preco.toFixed(2).replace('.', ',')}`;
+                    if (index === 0) option.selected = true;
+                    select.appendChild(option);
+                });
+
+                atualizarProduto();
+            } catch (error) {
+                console.error("Erro ao carregar produtos:", error);
+                alert("Erro ao carregar os produtos da planilha.");
+            }
+        }
 
         function getOpcaoSelecionada() {
             const select = document.getElementById('produto-select');
@@ -192,10 +214,11 @@
             qtd = 1;
             document.getElementById('quantidade').innerText = qtd;
 
-            // Atualiza a imagem com base no atributo data-img da opção escolhida
             const opcao = getOpcaoSelecionada();
-            const novaImagem = opcao.getAttribute('data-img');
-            document.getElementById('img-produto').src = novaImagem;
+            if (opcao) {
+                const novaImagem = opcao.getAttribute('data-img');
+                document.getElementById('img-produto').src = novaImagem;
+            }
 
             recalcularTotal();
             resetarPix();
@@ -211,6 +234,7 @@
 
         function recalcularTotal() {
             const opcao = getOpcaoSelecionada();
+            if (!opcao) return;
             const preco = parseFloat(opcao.getAttribute('data-preco'));
             const total = (qtd * preco).toFixed(2);
             document.getElementById('total').innerText = 'Total: R$ ' + total.replace('.', ',');
@@ -262,6 +286,9 @@
             navigator.clipboard.writeText(texto);
             alert("Código PIX copiado! Cole no aplicativo do seu banco.");
         }
+
+        // Inicia carregando os produtos ao abrir a página
+        carregarProdutos();
     </script>
 
 </body>
