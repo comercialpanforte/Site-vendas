@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Autoatendimento - Pão de Forma High Protein</title>
+    <title>Autoatendimento - PanForte</title>
     <style>
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
@@ -40,46 +40,65 @@
             border: 1px solid #d1f2eb;
         }
         .local-info {
-            font-size: 12px;
-            color: #7f8c8d;
+            font-size: 13px;
+            color: #2c3e50;
+            font-weight: 600;
             margin-bottom: 15px;
             background: #f8f9f9;
-            padding: 5px 10px;
+            padding: 6px 12px;
             border-radius: 6px;
             display: inline-block;
+            border: 1px solid #e5e7e9;
+        }
+        .form-group {
+            text-align: left;
+            margin-bottom: 15px;
+        }
+        label {
+            font-size: 14px;
+            font-weight: bold;
+            color: #2c3e50;
+            display: block;
+            margin-bottom: 5px;
+        }
+        select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #d5dbdb;
+            font-size: 15px;
+            background: #fff;
+            color: #333;
         }
         .produto-img { 
             width: 100%; 
-            height: 220px; 
+            height: 180px; 
             object-fit: cover; 
             border-radius: 12px; 
-            margin-bottom: 15px;
+            margin: 10px 0 15px 0;
             background: #eee;
         }
-        h2 { margin: 10px 0 5px 0; font-size: 22px; color: #2c3e50; }
-        .preco-unitario { color: #7f8c8d; font-size: 15px; margin-bottom: 15px; }
         .contador { 
             display: flex; 
             justify-content: center; 
             align-items: center; 
             gap: 20px; 
-            margin: 20px 0; 
+            margin: 15px 0; 
             background: #fdfefe;
             padding: 10px;
             border-radius: 12px;
             border: 1px solid #eaecee;
         }
         .btn-qtd { 
-            width: 45px;
-            height: 45px;
-            font-size: 22px; 
+            width: 40px;
+            height: 40px;
+            font-size: 20px; 
             font-weight: bold;
             border: none; 
             background: #eef2f5; 
             color: #2c3e50;
             border-radius: 50%; 
             cursor: pointer; 
-            transition: background 0.2s;
         }
         .btn-qtd:active { background: #d5dbdb; }
         .total-parcial { font-size: 20px; font-weight: bold; color: #27ae60; margin: 15px 0; }
@@ -99,12 +118,12 @@
         .btn-pagar:hover { background: #219653; }
         .btn-pagar:disabled { background: #bdc3c7; box-shadow: none; cursor: not-allowed; }
         
-        #area-pix { display: none; margin-top: 25px; padding-top: 20px; border-top: 2px dashed #eaecee; }
-        #qr-code-img { width: 210px; height: 210px; margin: 15px auto; display: block; border-radius: 8px; border: 1px solid #ddd; }
-        .copia-cola { background: #f8f9f9; padding: 12px; border-radius: 8px; border: 1px solid #d5dbdb; word-break: break-all; font-size: 12px; margin-bottom: 12px; text-align: left; max-height: 80px; overflow-y: auto; }
-        .btn-copiar { background: #3498db; color: white; width: 100%; padding: 12px; font-size: 15px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; }
+        #area-pix { display: none; margin-top: 20px; padding-top: 15px; border-top: 2px dashed #eaecee; }
+        #qr-code-img { width: 200px; height: 200px; margin: 10px auto; display: block; border-radius: 8px; border: 1px solid #ddd; }
+        .copia-cola { background: #f8f9f9; padding: 10px; border-radius: 8px; border: 1px solid #d5dbdb; word-break: break-all; font-size: 11px; margin-bottom: 10px; text-align: left; max-height: 70px; overflow-y: auto; }
+        .btn-copiar { background: #3498db; color: white; width: 100%; padding: 10px; font-size: 14px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; }
         .btn-copiar:hover { background: #2980b9; }
-        .instrucao { font-size: 13px; color: #7f8c8d; margin-top: 15px; line-height: 1.4; }
+        .instrucao { font-size: 12px; color: #7f8c8d; margin-top: 12px; line-height: 1.3; }
     </style>
 </head>
 <body>
@@ -117,27 +136,34 @@
         </div>
 
         <div>
-            <span class="local-info" id="txt-local">Local: Carregando...</span>
+            <span class="local-info" id="txt-local">Ponto: Carregando...</span>
+        </div>
+
+        <div class="form-group">
+            <label for="produto-select">Selecione o Produto:</label>
+            <select id="produto-select" onchange="atualizarPreco()">
+                <option value="189" data-preco="9.90">Pão de Forma Caseiro 400g - R$ 9,90</option>
+                <option value="191" data-preco="10.90">Pão de Forma Leite 400g - R$ 10,90</option>
+                <option value="190" data-preco="12.90" selected>Pão de Forma High Protein 400g - R$ 12,90</option>
+                <option value="192" data-preco="11.90">Pão de Forma Integral 400g - R$ 11,90</option>
+            </select>
         </div>
 
         <img src="HighProtein.jpg" alt="Pão de Forma" class="produto-img">
-        
-        <h2>Pão de Forma High Protein</h2>
-        <div class="preco-unitario">R$ 12,80 cada</div>
 
         <div class="contador">
             <button class="btn-qtd" onclick="mudarQtd(-1)">-</button>
-            <span id="quantidade" style="font-size: 26px; font-weight: bold; min-width: 30px;">1</span>
+            <span id="quantidade" style="font-size: 24px; font-weight: bold; min-width: 30px;">1</span>
             <button class="btn-qtd" onclick="mudarQtd(1)">+</button>
         </div>
 
-        <div class="total-parcial" id="total">Total: R$ 12,80</div>
+        <div class="total-parcial" id="total">Total: R$ 12,90</div>
 
         <button class="btn-pagar" id="btn-comprar" onclick="gerarPix()">Gerar PIX para Pagamento</button>
 
         <div id="area-pix">
             <h3 style="color: #2c3e50; margin-bottom: 5px;">Escaneie o QR Code</h3>
-            <p class="instrucao" style="margin-top: 0;">Abra o aplicativo do seu banco e aponte a câmera</p>
+            <p class="instrucao" style="margin-top: 0;">Abra o app do seu banco e pague</p>
             
             <img id="qr-code-img" src="" alt="QR Code PIX">
             
@@ -145,27 +171,46 @@
             <button class="btn-copiar" onclick="copiarCodigo()">Copiar Código PIX</button>
         </div>
 
-        <p class="instrucao">💡 Pegue seu produto no expositor, realize o pagamento e bom apetite!</p>
+        <p class="instrucao">💡 Pegue seu produto no expositor, pague via PIX e bom apetite!</p>
     </div>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const localId = urlParams.get('local') || 'expositor_principal';
         
-        document.getElementById('txt-local').innerText = 'Ponto de Venda: ' + localId;
+        document.getElementById('txt-local'].innerText = '📍 Ponto: ' + localId;
 
         let qtd = 1;
-        const preco = 12.80;
+
+        function getPrecoAtual() {
+            const select = document.getElementById('produto-select');
+            const optionSelecionada = select.options[select.selectedIndex];
+            return parseFloat(optionSelecionada.getAttribute('data-preco'));
+        }
+
+        function atualizarPreco() {
+            qtd = 1;
+            document.getElementById('quantidade').innerText = qtd;
+            recalcularTotal();
+            resetarPix();
+        }
 
         function mudarQtd(valor) {
             qtd += valor;
             if (qtd < 1) qtd = 1;
-            
             document.getElementById('quantidade').innerText = qtd;
-            document.getElementById('total').innerText = 'Total: R$ ' + (qtd * preco).toFixed(2).replace('.', ',');
+            recalcularTotal();
+            resetarPix();
+        }
 
+        function recalcularTotal() {
+            const preco = getPrecoAtual();
+            const total = (qtd * preco).toFixed(2);
+            document.getElementById('total').innerText = 'Total: R$ ' + total.replace('.', ',');
+        }
+
+        function resetarPix() {
             document.getElementById('area-pix').style.display = 'none';
-            
             const btn = document.getElementById('btn-comprar');
             btn.style.display = 'block';
             btn.disabled = false;
@@ -177,13 +222,16 @@
             btn.innerText = "Gerando PIX...";
             btn.disabled = true;
 
+            const select = document.getElementById('produto-select');
+            const produtoId = select.value;
+
             try {
                 const response = await fetch('https://site-vendas-cu7g.onrender.com/gerar-pix', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                         local_id: localId, 
-                        produto_id: 'pao_protein', 
+                        produto_id: produtoId, 
                         quantidade: qtd 
                     })
                 });
