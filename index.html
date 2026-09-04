@@ -141,7 +141,7 @@
 
         <div class="form-group">
             <label for="produto-select">Selecione o Produto:</label>
-            <select id="produto-select" onchange="atualizarPreco()">
+            <select id="produto-select" onchange="atualizarProduto()">
                 <option value="189" data-preco="9.90">Pão de Forma Caseiro 400g - R$ 9,90</option>
                 <option value="191" data-preco="10.90">Pão de Forma Leite 400g - R$ 10,90</option>
                 <option value="190" data-preco="12.90" selected>Pão de Forma High Protein 400g - R$ 12,90</option>
@@ -149,7 +149,7 @@
             </select>
         </div>
 
-        <img src="HighProtein.jpg" alt="Pão de Forma" class="produto-img">
+        <img src="HighProtein.jpg" id="img-produto" alt="Pão de Forma" class="produto-img">
 
         <div class="contador">
             <button class="btn-qtd" onclick="mudarQtd(-1)">-</button>
@@ -178,7 +178,8 @@
         const urlParams = new URLSearchParams(window.location.search);
         const localId = urlParams.get('local') || 'expositor_principal';
         
-        document.getElementById('txt-local'].innerText = '📍 Ponto: ' + localId;
+        // Exibe corretamente o local da URL
+        document.getElementById('txt-local').innerText = '📍 Ponto: ' + localId;
 
         let qtd = 1;
 
@@ -188,7 +189,7 @@
             return parseFloat(optionSelecionada.getAttribute('data-preco'));
         }
 
-        function atualizarPreco() {
+        function atualizarProduto() {
             qtd = 1;
             document.getElementById('quantidade').innerText = qtd;
             recalcularTotal();
