@@ -1,44 +1,54 @@
 const express = require('express');
 const cors = require('cors');
-app.use(cors()); // Permite requisições de qualquer origem (ou restrinja para o seu github)
 const { google } = require('googleapis');
 
 const app = express();
-app.use(express.json());
+
+// Configuração correta do CORS e suporte a JSON
 app.use(cors());
+app.use(express.json());
 
-const SPREADSHEET_ID = '1F1fNMddqg0BxDjiJoaPLVf9J3z7rpbo5SpyVXEO35g0';
-                        
-
-async function getGoogleSheetsClient() {
-    const auth = new google.auth.GoogleAuth({
-        // Lê direto do arquivo secreto do Render (/etc/secrets/credenciais.json)
-        keyFile: '/etc/secrets/credenciais.json',
-        scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-    });
-    return await google.sheets({ version: 'v4', auth });
-}
-
+// Exemplo da sua rota de produtos (mantenha ou ajuste com a sua lógica do Google Sheets)
 app.get('/produtos', async (req, res) => {
     try {
-        const sheets = await getGoogleSheetsClient();
-        const response = await sheets.spreadsheets.values.get({
-            spreadsheetId: SPREADSHEET_ID,
-            range: 'Produto!A2:D100',
+        // Coloque aqui a sua lógica atual que busca os produtos da planilha
+        const produtosExemplo = [
+            { id: "1", nome: "PÃO DE FORMA CASEIRO 400g", preco: 9.90, imagem: "HighProtein.jpg" },
+            { id: "2", nome: "PÃO DE FORMA LEITE 400g", preco: 10.90, imagem: "HighProtein.jpg" }
+        ];
+        res.json(produtosExemplo);
+    } catch (erro) {
+        console.error("Erro ao buscar produtos:", erro);
+        res.status(500).json({ mensagem: "Erro ao carregar produtos" });
+    }
+});
+
+// Rota para processar o carrinho e gerar o Pix (ajuste conforme a sua integração do Mercado Pago)
+app.post('/gerar-pix', async (req, res) => {
+    try {
+        const { local, itens } = req.body;
+
+        if (!itens || itens.length === 0) {
+            return res.status(400).json({ mensagem: "O carrinho está vazio." });
+        }
+
+        // Aqui você calcula o total real consultando os dados ou soma os itens recebidos com segurança
+        let totalCalculado = itens.reduce((acc, item) => acc + (item.preco * item.quantidade), 0);
+
+        console.log(`Processando pedido para o ponto: ${local}, Total: R$ ${totalCalculado.toFixed(2)}`);
+
+        // Insira aqui a chamada para a API do Mercado Pago para gerar a preferência/Pix
+        // Exemplo de resposta simulada de sucesso:
+        res.json({
+            sucesso: true,
+            id: "pref_exemplo_123456",
+            qr_code_url: "link_do_qr_code_aqui",
+            mensagem: "Pix gerado com sucesso!"
         });
-        const rows = response.data.values || [];
 
-        const produtos = rows.map(row => ({
-            id: row[0],
-            nome: row[1],
-            preco: parseFloat(String(row[2]).replace(',', '.')),
-            imagem: row[3] || 'HighProtein.jpg'
-        }));
-
-        res.json(produtos);
-    } catch (error) {
-        console.error("Erro detalhado:", error);
-        res.status(500).json({ error: "Erro real: " + error.message });
+    } catch (erro) {
+        console.error("Erro ao gerar Pix:", erro);
+        res.status(500).json({ mensagem: "Erro interno ao processar o pagamento." });
     }
 });
 
