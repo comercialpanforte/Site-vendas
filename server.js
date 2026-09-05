@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+app.use(cors()); // Permite requisições de qualquer origem (ou restrinja para o seu github)
 const { google } = require('googleapis');
 
 const app = express();
