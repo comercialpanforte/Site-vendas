@@ -25,7 +25,7 @@
             box-sizing: border-box;
         }
         .logo-container {
-            margin-bottom: 10px;
+            margin-bottom: 5px;
             min-height: 50px;
             display: flex;
             justify-content: center;
@@ -39,7 +39,7 @@
         .badge { 
             background: #e0f2f1; 
             color: #00796b; 
-            padding: 5px 10px; 
+            padding: 5px 12px; 
             border-radius: 20px; 
             font-size: 12px; 
             font-weight: bold; 
@@ -116,6 +116,13 @@
             justify-content: center;
             flex-shrink: 0;
         }
+        .footer-assinatura {
+            margin-top: 15px;
+            font-size: 11px;
+            color: #888;
+            border-top: 1px solid #f0f0f0;
+            padding-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -123,10 +130,10 @@
     <div class="card">
         <!-- Logo -->
         <div class="logo-container">
-            <img src="Logo.png" alt="Panforte" class="logo" onerror="this.onerror=null; this.src='https://via.placeholder.com/150x50?text=Panforte';">
+            <img src="logo.png" alt="Panforte" class="logo" onerror="this.onerror=null; this.src='https://via.placeholder.com/150x50?text=Panforte';">
         </div>
         
-        <div class="badge" id="lbl-local">Ponto de venda: Carregando...</div>
+        <div class="badge" id="lbl-local">📍 Ponto de venda: Carregando...</div>
 
         <h3 style="margin: 5px 0 10px 0; font-size: 16px;">Selecione o Produto:</h3>
         
@@ -158,17 +165,22 @@
 
         <!-- Botão Pix -->
         <button class="btn-pix" onclick="gerarPix()">Gerar PIX para Pagamento</button>
-        <p style="font-size: 11px; color: #666; margin-top: 10px;">💡 Pegue seu produto no expositor, pague via PIX e bom apetite!</p>
+        <p style="font-size: 11px; color: #666; margin-top: 8px;">💡 Pegue seu produto no expositor, pague via PIX e bom apetite!</p>
+
+        <!-- Rodapé / Assinatura -->
+        <div class="footer-assinatura">
+            Autoatendimento by <strong>Panforte</strong>
+        </div>
     </div>
 
     <script>
         let produtosDisponiveis = [];
         let carrinho = [];
 
-        // Leitura do Ponto de Venda via URL (?local=Nome)
+        // Leitura do Ponto de Venda via URL (?local=Nome) com o ícone
         const urlParams = new URLSearchParams(window.location.search);
         const local = urlParams.get('local') || 'Geral';
-        document.getElementById('lbl-local').innerText = `Ponto de venda: ${local}`;
+        document.getElementById('lbl-local').innerHTML = `📍 Ponto de venda: ${local}`;
 
         // 1. Carregar produtos da API do Render
         async function carregarProdutos() {
@@ -204,7 +216,7 @@
             }
         }
 
-        // 2. Adicionar item ao carrinho
+        // 2. Adicionar item ao carrinho e resetar quantidade para 1
         function adicionarAoCarrinho() {
             const indexSelect = document.getElementById('select-produtos').value;
             const inputQtd = document.getElementById('input-qtd');
