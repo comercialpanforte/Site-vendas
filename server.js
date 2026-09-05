@@ -8,20 +8,10 @@ app.use(cors());
 
 const SPREADSHEET_ID = '1F1FnMddq0BxDjiJoaPLV9J3z7rpbo5SpyVXE035g0';
 
-function getPrivateKey() {
-    let key = process.env.GOOGLE_PRIVATE_KEY || '';
-    // Remove aspas extras se por acaso houver
-    key = key.replace(/^["']|["']$/g, '');
-    // Substitui literais \n por quebras de linha reais
-    return key.replace(/\\n/g, '\n');
-}
-
 async function getGoogleSheetsClient() {
     const auth = new google.auth.GoogleAuth({
-        credentials: {
-            client_email: process.env.GOOGLE_CLIENT_EMAIL,
-            private_key: getPrivateKey(),
-        },
+        // Lê direto do arquivo secreto do Render (/etc/secrets/credenciais.json)
+        keyFile: '/etc/secrets/credenciais.json',
         scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
     return await google.sheets({ version: 'v4', auth });
@@ -35,7 +25,7 @@ app.get('/produtos', async (req, res) => {
             range: 'Produto!A2:D100',
         });
         const rows = response.data.values || [];
-        
+
         const produtos = rows.map(row => ({
             id: row[0],
             nome: row[1],
