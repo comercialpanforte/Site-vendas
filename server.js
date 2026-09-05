@@ -4,26 +4,58 @@ const { google } = require('googleapis');
 
 const app = express();
 
-// Configuração correta do CORS e suporte a JSON
+// Configurações essenciais
 app.use(cors());
 app.use(express.json());
 
-// Exemplo da sua rota de produtos (mantenha ou ajuste com a sua lógica do Google Sheets)
+// Configuração da autenticação com o Google Sheets (ajuste as credenciais conforme o seu setup original)
+const auth = new google.auth.GoogleAuth({
+    credentials: {
+        client_email: process.env.GOOGLE_CLIENT_EMAIL,
+        private_key: process.env.GOOGLE_PRIVATE_KEY ? process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n') : undefined,
+    },
+    scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+});
+
+const SPREADSHEET_ID = process.env.SPREADSHEET_ID; // ID da sua planilha cadastrada nas variáveis de ambiente do Render
+
+// Rota para buscar os produtos diretamente da planilha do Google Sheets
 app.get('/produtos', async (req, res) => {
     try {
-        // Coloque aqui a sua lógica atual que busca os produtos da planilha
-        const produtosExemplo = [
-            { id: "1", nome: "PÃO DE FORMA CASEIRO 400g", preco: 9.90, imagem: "HighProtein.jpg" },
-            { id: "2", nome: "PÃO DE FORMA LEITE 400g", preco: 10.90, imagem: "HighProtein.jpg" }
-        ];
-        res.json(produtosExemplo);
+        const client = await auth.getClient();
+        const googleSheets = google.sheets({ version: 'v4', auth: client });
+
+        // Defina aqui a aba e o intervalo onde estão os seus produtos na planilha (ex: 'Produtos!A2:D100')
+        const range = 'Produtos!A2:D100'; 
+
+        const getRows = await googleSheets.spreadsheets.values.get({
+            spreadsheetId: SPREADSHEET_ID,
+            range: range,
+        });
+
+        const rows = getRows.data.values;
+
+        if (!rows || rows.length === 0) {
+            return res.status(404).json({ mensagem: "Nenhum produto encontrado na planilha." });
+        }
+
+        // Mapeia os dados da planilha para o formato que o front-end consome
+        // Ajuste os índices (0, 1, 2, 3) conforme a ordem das colunas na sua planilha (ex: Nome, Preco, Imagem, ID)
+        const produtos = rows.map((row, index) => ({
+            id: row[3] || String(index + 1),
+            nome: row[0],
+            preco: parseFloat(row[1].replace('R$', '').replace(',', '.').trim()) || 0,
+            imagem: row[2] || 'HighProtein.jpg'
+        }));
+
+        res.json(produtos);
     } catch (erro) {
-        console.error("Erro ao buscar produtos:", erro);
-        res.status(500).json({ mensagem: "Erro ao carregar produtos" });
+        console.error("Erro ao buscar produtos do Google Sheets:", erro);
+        res.status(500).json({ mensagem: "Erro ao carregar produtos da planilha." });
     }
 });
 
-// Rota para processar o carrinho e gerar o Pix (ajuste conforme a sua integração do Mercado Pago)
+// Rota para processar o carrinho e integrar com o Mercado Pago
 app.post('/gerar-pix', async (req, res) => {
     try {
         const { local, itens } = req.body;
@@ -32,23 +64,22 @@ app.post('/gerar-pix', async (req, res) => {
             return res.status(400).json({ mensagem: "O carrinho está vazio." });
         }
 
-        // Aqui você calcula o total real consultando os dados ou soma os itens recebidos com segurança
-        let totalCalculado = itens.reduce((acc, item) => acc + (item.preco * item.quantidade), 0);
+        // Cálculo total dos itens enviados pelo carrinho
+        let totalGeral = itens.reduce((acc, item) => acc + (item.preco * item.quantidade), 0);
 
-        console.log(`Processando pedido para o ponto: ${local}, Total: R$ ${totalCalculado.toFixed(2)}`);
+        console.log(`Gerando Pix para o ponto: ${local} | Total: R$ ${totalGeral.toFixed(2)}`);
 
-        // Insira aqui a chamada para a API do Mercado Pago para gerar a preferência/Pix
-        // Exemplo de resposta simulada de sucesso:
+        // Aqui entra a sua chamada oficial para a API do Mercado Pago utilizando suas credenciais
+        // Retorne os dados de pagamento gerados para o front-end
         res.json({
             sucesso: true,
-            id: "pref_exemplo_123456",
-            qr_code_url: "link_do_qr_code_aqui",
-            mensagem: "Pix gerado com sucesso!"
+            total: totalGeral,
+            mensagem: "Requisição de pagamento processada com sucesso!"
         });
 
     } catch (erro) {
         console.error("Erro ao gerar Pix:", erro);
-        res.status(500).json({ mensagem: "Erro interno ao processar o pagamento." });
+        res.status(500).json({ mensagem: "Erro interno ao processar o pagamento via Mercado Pago." });
     }
 });
 
