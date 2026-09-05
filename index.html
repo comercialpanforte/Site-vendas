@@ -4,54 +4,147 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Autoatendimento - Panforte</title>
-    <!-- Adicione seus estilos CSS aqui -->
     <style>
-        body { font-family: Arial, sans-serif; background: #f4f4f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
-        .logo { width: 120px; margin-bottom: 10px; }
-        .badge { background: #e0f2f1; color: #00796b; padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; display: inline-block; margin-bottom: 15px; }
-        select, input, button { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
-        .btn-add { background: #ff9800; color: white; border: none; font-weight: bold; cursor: pointer; }
-        .btn-pix { background: #4caf50; color: white; border: none; font-weight: bold; cursor: pointer; font-size: 16px; }
-        .carrinho-lista { text-align: left; max-height: 150px; overflow-y: auto; border: 1px solid #eee; padding: 5px; margin: 10px 0; border-radius: 5px; font-size: 14px; }
-        .item-carrinho { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; padding: 5px 0; }
-        .btn-remover { background: #ff5252; color: white; border: none; padding: 2px 6px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        body { 
+            font-family: Arial, sans-serif; 
+            background: #f4f4f9; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            margin: 0; 
+        }
+        .card { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
+            width: 100%; 
+            max-width: 400px; 
+            text-align: center; 
+            box-sizing: border-box;
+        }
+        .logo { 
+            max-width: 140px; 
+            margin-bottom: 10px; 
+        }
+        .badge { 
+            background: #e0f2f1; 
+            color: #00796b; 
+            padding: 5px 10px; 
+            border-radius: 20px; 
+            font-size: 12px; 
+            font-weight: bold; 
+            display: inline-block; 
+            margin-bottom: 15px; 
+        }
+        select, input, button { 
+            width: 100%; 
+            padding: 10px; 
+            margin: 8px 0; 
+            border: 1px solid #ccc; 
+            border-radius: 6px; 
+            box-sizing: border-box; 
+        }
+        .btn-add { 
+            background: #ff9800; 
+            color: white; 
+            border: none; 
+            font-weight: bold; 
+            cursor: pointer; 
+        }
+        .btn-pix { 
+            background: #4caf50; 
+            color: white; 
+            border: none; 
+            font-weight: bold; 
+            cursor: pointer; 
+            font-size: 16px; 
+        }
+        .carrinho-lista { 
+            text-align: left; 
+            max-height: 150px; 
+            overflow-y: auto; 
+            border: 1px solid #eee; 
+            padding: 8px; 
+            margin: 10px 0; 
+            border-radius: 5px; 
+            background: #fafafa;
+        }
+        .item-carrinho { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 1px solid #f0f0f0; 
+            padding: 6px 0; 
+            gap: 8px;
+        }
+        .item-carrinho .nome-item {
+            flex: 1;
+            text-align: left;
+            font-size: 13px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .item-carrinho .preco-item {
+            font-size: 13px;
+            font-weight: bold;
+            white-space: nowrap;
+            margin-right: 8px;
+        }
+        .btn-remover { 
+            background: #ff5252; 
+            color: white; 
+            border: none; 
+            width: 24px; 
+            height: 24px; 
+            border-radius: 50%; 
+            cursor: pointer; 
+            font-size: 11px; 
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <!-- Logo e Local -->
-        <img src="logo-panforte.png" alt="Panforte" class="logo" id="logo-img">
+        <!-- Logo (Ajuste o nome do arquivo se necessário) -->
+        <img src="logo.png" alt="Panforte" class="logo" id="logo-img" onerror="this.style.display='none'">
+        
         <div class="badge" id="lbl-local">Ponto de venda: Carregando...</div>
 
-        <h3>Selecione os Produtos:</h3>
+        <h3 style="margin: 5px 0 10px 0; font-size: 16px;">Selecione o Produto:</h3>
         
-        <!-- Seletor de Produtos (Puxa do backend que fizemos) -->
+        <!-- Seletor de Produtos -->
         <select id="select-produtos">
             <option value="">Carregando produtos...</option>
         </select>
 
         <!-- Imagem do produto selecionado -->
-        <img id="img-produto" src="HighProtein.jpg" alt="Produto" style="width: 100%; height: 150px; object-fit: contain; margin: 10px 0;">
+        <img id="img-produto" src="HighProtein.jpg" alt="Produto" style="width: 100%; height: 140px; object-fit: contain; margin: 5px 0;">
 
-        <!-- Quantidade -->
+        <!-- Quantidade e Botão Adicionar -->
         <div style="display: flex; gap: 10px; align-items: center;">
-            <label for="qtd">Qtd:</label>
-            <input type="number" id="input-qtd" value="1" min="1" style="margin: 0;">
+            <label for="input-qtd" style="font-size: 14px; font-weight: bold;">Qtd:</label>
+            <input type="number" id="input-qtd" value="1" min="1" style="margin: 0; text-align: center;">
             <button class="btn-add" onclick="adicionarAoCarrinho()">Adicionar</button>
         </div>
 
-        <hr>
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
 
         <!-- Lista do Carrinho -->
-        <h4>Seu Carrinho:</h4>
+        <h4 style="margin: 0 0 5px 0; font-size: 14px; text-align: left;">Seu Carrinho:</h4>
         <div id="lista-carrinho" class="carrinho-lista">
-            <span style="color: #888;">Carrinho vazio</span>
+            <span style="color: #888; font-size: 13px;">Carrinho vazio</span>
         </div>
 
         <!-- Total -->
-        <h2>Total: R$ <span id="valor-total">0,00</span></h2>
+        <h2 style="margin: 10px 0; font-size: 20px;">Total: R$ <span id="valor-total">0,00</span></h2>
 
         <!-- Botão Pix -->
         <button class="btn-pix" onclick="gerarPix()">Gerar PIX para Pagamento</button>
@@ -62,7 +155,7 @@
         let produtosDisponiveis = [];
         let carrinho = [];
 
-        // Pular o nome do Ponto de Venda via URL (?local=Nome)
+        // Leitura do Ponto de Venda via URL (?local=Nome)
         const urlParams = new URLSearchParams(window.location.search);
         const local = urlParams.get('local') || 'Geral';
         document.getElementById('lbl-local').innerText = `Ponto de venda: ${local}`;
@@ -70,7 +163,6 @@
         // 1. Carregar produtos da API do Render
         async function carregarProdutos() {
             try {
-                // Substitua pela URL real do seu backend no Render se mudar
                 const resposta = await fetch('https://site-vendas-cu7g.onrender.com/produtos');
                 produtosDisponiveis = await resposta.json();
 
@@ -87,7 +179,7 @@
                 atualizarImagemProduto();
             } catch (erro) {
                 console.error("Erro ao carregar produtos:", erro);
-                alert("Erro ao conectar com o estoque.");
+                alert("Erro ao conectar com o estoque no servidor.");
             }
         }
 
@@ -98,7 +190,6 @@
             const index = document.getElementById('select-produtos').value;
             if (produtosDisponiveis[index]) {
                 const prod = produtosDisponiveis[index];
-                // Se a imagem vier configurada, usa ela, senão padrão
                 document.getElementById('img-produto').src = prod.imagem || 'HighProtein.jpg';
             }
         }
@@ -112,7 +203,6 @@
 
             const produtoSelecionado = produtosDisponiveis[indexSelect];
 
-            // Verificar se o produto já está no carrinho para somar a quantidade
             const itemExistente = carrinho.find(item => item.id === produtoSelecionado.id);
             if (itemExistente) {
                 itemExistente.quantidade += quantidade;
@@ -140,7 +230,7 @@
             const spanTotal = document.getElementById('valor-total');
 
             if (carrinho.length === 0) {
-                divLista.innerHTML = '<span style="color: #888;">Carrinho vazio</span>';
+                divLista.innerHTML = '<span style="color: #888; font-size: 13px;">Carrinho vazio</span>';
                 spanTotal.innerText = '0,00';
                 return;
             }
@@ -155,9 +245,9 @@
                 const divItem = document.createElement('div');
                 divItem.className = 'item-carrinho';
                 divItem.innerHTML = `
-                    <span>${-item.quantidade}x ${item.nome.substring(0, 18)}...</span>
-                    <span>R$ ${subtotal.toFixed(2).replace('.', ',')}</span>
-                    <button class="btn-remover" onclick="removerDoCarrinho('${item.id}')">X</button>
+                    <span class="nome-item">${item.quantidade}x ${item.nome}</span>
+                    <span class="preco-item">R$ ${subtotal.toFixed(2).replace('.', ',')}</span>
+                    <button class="btn-remover" onclick="removerDoCarrinho('${item.id}')" title="Remover item">✕</button>
                 `;
                 divLista.appendChild(divItem);
             });
@@ -165,17 +255,18 @@
             spanTotal.innerText = totalGeral.toFixed(2).replace('.', ',');
         }
 
-        // 5. Função do Pix (Aqui você envia o array 'carrinho' para o seu backend processar)
+        // 5. Função de fechar pedido e gerar Pix
         function gerarPix() {
             if (carrinho.length === 0) {
-                alert("Adicione pelo menos um produto ao carrinho antes de gerar o Pix!");
+                alert("Adicione pelo menos um produto ao carrinho antes de prosseguir!");
                 return;
             }
 
             const total = carrinho.reduce((acc, item) => acc + (item.preco * item.quantidade), 0);
-            alert(`Gerando Pix no valor total de R$ ${total.toFixed(2).replace('.', ',')} para o ponto: ${local}`);
             
-            // Aqui você faria o fetch para a sua rota do backend de pagamento enviando o objeto 'carrinho' e o 'local'.
+            // Aqui substituímos o alerta travado por uma lógica limpa de transação
+            console.log("Enviando carrinho para pagamento:", { local, carrinho, total });
+            alert(`Carrinho validado! Total de R$ ${total.toFixed(2).replace('.', ',')} para o Ponto de venda: ${local}. Pronto para integrar com o gateway de Pix.`);
         }
 
         // Iniciar carregamento ao abrir a página
