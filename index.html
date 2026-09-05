@@ -125,6 +125,11 @@
             background-color: #38a169;
             transform: translateY(-1px);
         }
+        .btn-pix:disabled {
+            background-color: #cbd5e0;
+            cursor: not-allowed;
+            transform: none;
+        }
 
         /* Estilo Carrinho Compacto */
         .carrinho-section {
@@ -225,7 +230,7 @@
     <div class="card">
         <!-- Logo -->
         <div class="logo-container">
-            <img src="Logo.png" alt="Panforte" class="logo" onerror="this.onerror=null; this.src='https://via.placeholder.com/130x40?text=Panforte';">
+            <img src="logo.png" alt="Panforte" class="logo" onerror="this.onerror=null; this.src='https://via.placeholder.com/130x40?text=Panforte';">
         </div>
         
         <div class="badge" id="lbl-local">📍 Ponto de venda: Carregando...</div>
@@ -402,17 +407,44 @@
             spanTotal.innerText = totalGeral.toFixed(2).replace('.', ',');
         }
 
-        // 5. Função de fechar pedido e gerar Pix
-        function gerarPix() {
+        // 5. Função de fechar pedido e gerar Pix (Integrada com o Render)
+        async function gerarPix() {
             if (carrinho.length === 0) {
                 alert("Adicione pelo menos um produto ao carrinho antes de prosseguir!");
                 return;
             }
 
-            const total = carrinho.reduce((acc, item) => acc + (item.preco * item.quantidade), 0);
-            
-            console.log("Enviando carrinho para pagamento:", { local, carrinho, total });
-            alert(`Carrinho validado! Total de R$ ${total.toFixed(2).replace('.', ',')} para o Ponto de venda: ${local}. Pronto para integrar com o gateway de Pix.`);
+            const botaoPix = document.querySelector('.btn-pix');
+            botaoPix.disabled = true;
+            botaoPix.innerText = "Gerando QR Code Pix...";
+
+            try {
+                const resposta = await fetch('https://site-vendas-cu7g.onrender.com/gerar-pix', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        local: local,
+                        itens: carrinho
+                    })
+                });
+
+                const dados = await resposta.json();
+
+                if (resposta.ok) {
+                    alert(`Pix gerado com sucesso para o Ponto de venda: ${local}!`);
+                    // Aqui depois podemos direcionar para a tela de QR code que o Mercado Pago retornar
+                } else {
+                    alert("Erro ao gerar o Pix: " + (dados.mensagem || "Tente novamente."));
+                }
+            } catch (erro) {
+                console.error("Erro na comunicação com o servidor:", erro);
+                alert("Erro de conexão ao gerar o pagamento.");
+            } finally {
+                botaoPix.disabled = false;
+                botaoPix.innerText = "Gerar PIX para Pagamento";
+            }
         }
 
         // Iniciar carregamento ao abrir a página
