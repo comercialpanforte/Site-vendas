@@ -3,293 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Autoatendimento - PanForte</title>
+    <title>Autoatendimento - Panforte</title>
+    <!-- Adicione seus estilos CSS aqui -->
     <style>
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            text-align: center; 
-            background: #f4f6f8; 
-            padding: 20px; 
-            color: #333;
-        }
-        .card { 
-            background: white; 
-            padding: 25px; 
-            border-radius: 16px; 
-            box-shadow: 0 8px 24px rgba(0,0,0,0.08); 
-            max-width: 420px; 
-            margin: auto; 
-        }
-        .logo-img {
-            max-width: 160px;
-            max-height: 65px;
-            object-fit: contain;
-            margin-bottom: 5px;
-        }
-        .badge-autoatendimento {
-            background: #e8f8f5;
-            color: #16a085;
-            font-size: 13px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 1.2px;
-            padding: 6px 12px;
-            border-radius: 20px;
-            display: inline-block;
-            margin: 8px 0 12px 0;
-            border: 1px solid #d1f2eb;
-        }
-        .local-info {
-            font-size: 13px;
-            color: #2c3e50;
-            font-weight: 600;
-            margin-bottom: 15px;
-            background: #f8f9f9;
-            padding: 6px 12px;
-            border-radius: 6px;
-            display: inline-block;
-            border: 1px solid #e5e7e9;
-        }
-        .form-group {
-            text-align: left;
-            margin-bottom: 15px;
-        }
-        label {
-            font-size: 14px;
-            font-weight: bold;
-            color: #2c3e50;
-            display: block;
-            margin-bottom: 5px;
-        }
-        select {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #d5dbdb;
-            font-size: 15px;
-            background: #fff;
-            color: #333;
-        }
-        .produto-img { 
-            width: 100%; 
-            height: 180px; 
-            object-fit: cover; 
-            border-radius: 12px; 
-            margin: 10px 0 15px 0;
-            background: #eee;
-        }
-        .contador { 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            gap: 20px; 
-            margin: 15px 0; 
-            background: #fdfefe;
-            padding: 10px;
-            border-radius: 12px;
-            border: 1px solid #eaecee;
-        }
-        .btn-qtd { 
-            width: 40px;
-            height: 40px;
-            font-size: 20px; 
-            font-weight: bold;
-            border: none; 
-            background: #eef2f5; 
-            color: #2c3e50;
-            border-radius: 50%; 
-            cursor: pointer; 
-        }
-        .btn-qtd:active { background: #d5dbdb; }
-        .total-parcial { font-size: 20px; font-weight: bold; color: #27ae60; margin: 15px 0; }
-        .btn-pagar { 
-            background: #27ae60; 
-            color: white; 
-            width: 100%; 
-            padding: 14px; 
-            font-size: 18px; 
-            font-weight: bold; 
-            border: none; 
-            border-radius: 10px; 
-            cursor: pointer; 
-            box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
-            transition: background 0.2s;
-        }
-        .btn-pagar:hover { background: #219653; }
-        .btn-pagar:disabled { background: #bdc3c7; box-shadow: none; cursor: not-allowed; }
-        
-        #area-pix { display: none; margin-top: 20px; padding-top: 15px; border-top: 2px dashed #eaecee; }
-        #qr-code-img { width: 200px; height: 200px; margin: 10px auto; display: block; border-radius: 8px; border: 1px solid #ddd; }
-        .copia-cola { background: #f8f9f9; padding: 10px; border-radius: 8px; border: 1px solid #d5dbdb; word-break: break-all; font-size: 11px; margin-bottom: 10px; text-align: left; max-height: 70px; overflow-y: auto; }
-        .btn-copiar { background: #3498db; color: white; width: 100%; padding: 10px; font-size: 14px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; }
-        .btn-copiar:hover { background: #2980b9; }
-        .instrucao { font-size: 12px; color: #7f8c8d; margin-top: 12px; line-height: 1.3; }
+        body { font-family: Arial, sans-serif; background: #f4f4f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+        .logo { width: 120px; margin-bottom: 10px; }
+        .badge { background: #e0f2f1; color: #00796b; padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; display: inline-block; margin-bottom: 15px; }
+        select, input, button { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+        .btn-add { background: #ff9800; color: white; border: none; font-weight: bold; cursor: pointer; }
+        .btn-pix { background: #4caf50; color: white; border: none; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .carrinho-lista { text-align: left; max-height: 150px; overflow-y: auto; border: 1px solid #eee; padding: 5px; margin: 10px 0; border-radius: 5px; font-size: 14px; }
+        .item-carrinho { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; padding: 5px 0; }
+        .btn-remover { background: #ff5252; color: white; border: none; padding: 2px 6px; border-radius: 4px; cursor: pointer; font-size: 12px; }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <img src="LogoPanForteHorizontal.png" alt="Logo da Fábrica" class="logo-img">
+        <!-- Logo e Local -->
+        <img src="logo-panforte.png" alt="Panforte" class="logo" id="logo-img">
+        <div class="badge" id="lbl-local">Ponto de venda: Carregando...</div>
+
+        <h3>Selecione os Produtos:</h3>
         
-        <div>
-            <span class="badge-autoatendimento">Autoatendimento Express</span>
+        <!-- Seletor de Produtos (Puxa do backend que fizemos) -->
+        <select id="select-produtos">
+            <option value="">Carregando produtos...</option>
+        </select>
+
+        <!-- Imagem do produto selecionado -->
+        <img id="img-produto" src="HighProtein.jpg" alt="Produto" style="width: 100%; height: 150px; object-fit: contain; margin: 10px 0;">
+
+        <!-- Quantidade -->
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <label for="qtd">Qtd:</label>
+            <input type="number" id="input-qtd" value="1" min="1" style="margin: 0;">
+            <button class="btn-add" onclick="adicionarAoCarrinho()">Adicionar</button>
         </div>
 
-        <div>
-            <span class="local-info" id="txt-local">Ponto de venda: Carregando...</span>
+        <hr>
+
+        <!-- Lista do Carrinho -->
+        <h4>Seu Carrinho:</h4>
+        <div id="lista-carrinho" class="carrinho-lista">
+            <span style="color: #888;">Carrinho vazio</span>
         </div>
 
-        <div class="form-group">
-            <label for="produto-select">Selecione o Produto:</label>
-            <select id="produto-select" onchange="atualizarProduto()">
-                <option value="">Carregando produtos...</option>
-            </select>
-        </div>
+        <!-- Total -->
+        <h2>Total: R$ <span id="valor-total">0,00</span></h2>
 
-        <img src="" id="img-produto" alt="Foto do Pão" class="produto-img">
-
-        <div class="contador">
-            <button class="btn-qtd" onclick="mudarQtd(-1)">-</button>
-            <span id="quantidade" style="font-size: 24px; font-weight: bold; min-width: 30px;">1</span>
-            <button class="btn-qtd" onclick="mudarQtd(1)">+</button>
-        </div>
-
-        <div class="total-parcial" id="total">Total: R$ 0,00</div>
-
-        <button class="btn-pagar" id="btn-comprar" onclick="gerarPix()">Gerar PIX para Pagamento</button>
-
-        <div id="area-pix">
-            <h3 style="color: #2c3e50; margin-bottom: 5px;">Escaneie o QR Code</h3>
-            <p class="instrucao" style="margin-top: 0;">Abra o app do seu banco e pague</p>
-            
-            <img id="qr-code-img" src="" alt="QR Code PIX">
-            
-            <div class="copia-cola" id="texto-copia-cola"></div>
-            <button class="btn-copiar" onclick="copiarCodigo()">Copiar Código PIX</button>
-        </div>
-
-        <p class="instrucao">💡 Pegue seu produto no expositor, pague via PIX e bom apetite!</p>
+        <!-- Botão Pix -->
+        <button class="btn-pix" onclick="gerarPix()">Gerar PIX para Pagamento</button>
+        <p style="font-size: 11px; color: #666; margin-top: 10px;">💡 Pegue seu produto no expositor, pague via PIX e bom apetite!</p>
     </div>
 
     <script>
+        let produtosDisponiveis = [];
+        let carrinho = [];
+
+        // Pular o nome do Ponto de Venda via URL (?local=Nome)
         const urlParams = new URLSearchParams(window.location.search);
-        const localId = urlParams.get('local') || 'expositor_principal';
-        document.getElementById('txt-local').innerText = '📍 Ponto de venda: ' + localId;
+        const local = urlParams.get('local') || 'Geral';
+        document.getElementById('lbl-local').innerText = `Ponto de venda: ${local}`;
 
-        let qtd = 1;
-        let listaProdutos = [];
-
-        // Ao carregar a página, busca os produtos direto do backend/planilha
+        // 1. Carregar produtos da API do Render
         async function carregarProdutos() {
             try {
-                const response = await fetch('https://site-vendas-cu7g.onrender.com/produtos');
-                listaProdutos = await response.json();
+                // Substitua pela URL real do seu backend no Render se mudar
+                const resposta = await fetch('https://site-vendas-cu7g.onrender.com/produtos');
+                produtosDisponiveis = await resposta.json();
 
-                const select = document.getElementById('produto-select');
+                const select = document.getElementById('select-produtos');
                 select.innerHTML = '';
 
-                listaProdutos.forEach((prod, index) => {
+                produtosDisponiveis.forEach((p, index) => {
                     const option = document.createElement('option');
-                    option.value = prod.id;
-                    option.setAttribute('data-preco', prod.preco);
-                    option.setAttribute('data-img', prod.imagem);
-                    option.innerText = `${prod.nome} - R$ ${prod.preco.toFixed(2).replace('.', ',')}`;
-                    if (index === 0) option.selected = true;
+                    option.value = index;
+                    option.text = `${p.nome} - R$ ${p.preco.toFixed(2).replace('.', ',')}`;
                     select.appendChild(option);
                 });
 
-                atualizarProduto();
-            } catch (error) {
-                console.error("Erro ao carregar produtos:", error);
-                alert("Erro ao carregar os produtos da planilha.");
+                atualizarImagemProduto();
+            } catch (erro) {
+                console.error("Erro ao carregar produtos:", erro);
+                alert("Erro ao conectar com o estoque.");
             }
         }
 
-        function getOpcaoSelecionada() {
-            const select = document.getElementById('produto-select');
-            return select.options[select.selectedIndex];
-        }
+        // Atualizar foto ao trocar o produto no select
+        document.getElementById('select-produtos').addEventListener('change', atualizarImagemProduto);
 
-        function atualizarProduto() {
-            qtd = 1;
-            document.getElementById('quantidade').innerText = qtd;
-
-            const opcao = getOpcaoSelecionada();
-            if (opcao) {
-                const novaImagem = opcao.getAttribute('data-img');
-                document.getElementById('img-produto').src = novaImagem;
+        function atualizarImagemProduto() {
+            const index = document.getElementById('select-produtos').value;
+            if (produtosDisponiveis[index]) {
+                const prod = produtosDisponiveis[index];
+                // Se a imagem vier configurada, usa ela, senão padrão
+                document.getElementById('img-produto').src = prod.imagem || 'HighProtein.jpg';
             }
-
-            recalcularTotal();
-            resetarPix();
         }
 
-        function mudarQtd(valor) {
-            qtd += valor;
-            if (qtd < 1) qtd = 1;
-            document.getElementById('quantidade').innerText = qtd;
-            recalcularTotal();
-            resetarPix();
-        }
+        // 2. Adicionar item ao carrinho
+        function adicionarAoCarrinho() {
+            const indexSelect = document.getElementById('select-produtos').value;
+            const quantidade = parseInt(document.getElementById('input-qtd').value) || 1;
 
-        function recalcularTotal() {
-            const opcao = getOpcaoSelecionada();
-            if (!opcao) return;
-            const preco = parseFloat(opcao.getAttribute('data-preco'));
-            const total = (qtd * preco).toFixed(2);
-            document.getElementById('total').innerText = 'Total: R$ ' + total.replace('.', ',');
-        }
+            if (indexSelect === "" || !produtosDisponiveis[indexSelect]) return;
 
-        function resetarPix() {
-            document.getElementById('area-pix').style.display = 'none';
-            const btn = document.getElementById('btn-comprar');
-            btn.style.display = 'block';
-            btn.disabled = false;
-            btn.innerText = 'Gerar PIX para Pagamento';
-        }
+            const produtoSelecionado = produtosDisponiveis[indexSelect];
 
-        async function gerarPix() {
-            const btn = document.getElementById('btn-comprar');
-            btn.innerText = "Gerando PIX...";
-            btn.disabled = true;
-
-            const select = document.getElementById('produto-select');
-            const produtoId = select.value;
-
-            try {
-                const response = await fetch('https://site-vendas-cu7g.onrender.com/gerar-pix', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        local_id: localId, 
-                        produto_id: produtoId, 
-                        quantidade: qtd 
-                    })
+            // Verificar se o produto já está no carrinho para somar a quantidade
+            const itemExistente = carrinho.find(item => item.id === produtoSelecionado.id);
+            if (itemExistente) {
+                itemExistente.quantidade += quantidade;
+            } else {
+                carrinho.push({
+                    id: produtoSelecionado.id,
+                    nome: produtoSelecionado.nome,
+                    preco: produtoSelecionado.preco,
+                    quantidade: quantidade
                 });
-
-                const data = await response.json();
-
-                document.getElementById('area-pix').style.display = 'block';
-                document.getElementById('qr-code-img').src = 'data:image/jpeg;base64,' + data.qr_code_base64;
-                document.getElementById('texto-copia-cola').innerText = data.qr_code_copia_e_cola;
-                btn.style.display = 'none';
-
-            } catch (error) {
-                alert("Erro ao gerar pagamento. Tente novamente.");
-                btn.innerText = "Gerar PIX para Pagamento";
-                btn.disabled = false;
             }
+
+            renderizarCarrinho();
         }
 
-        function copiarCodigo() {
-            const texto = document.getElementById('texto-copia-cola').innerText;
-            navigator.clipboard.writeText(texto);
-            alert("Código PIX copiado! Cole no aplicativo do seu banco.");
+        // 3. Remover item do carrinho
+        function removerDoCarrinho(id) {
+            carrinho = carrinho.filter(item => item.id !== id);
+            renderizarCarrinho();
         }
 
-        // Inicia carregando os produtos ao abrir a página
+        // 4. Desenhar o carrinho na tela e calcular o total
+        function renderizarCarrinho() {
+            const divLista = document.getElementById('lista-carrinho');
+            const spanTotal = document.getElementById('valor-total');
+
+            if (carrinho.length === 0) {
+                divLista.innerHTML = '<span style="color: #888;">Carrinho vazio</span>';
+                spanTotal.innerText = '0,00';
+                return;
+            }
+
+            divLista.innerHTML = '';
+            let totalGeral = 0;
+
+            carrinho.forEach(item => {
+                const subtotal = item.preco * item.quantidade;
+                totalGeral += subtotal;
+
+                const divItem = document.createElement('div');
+                divItem.className = 'item-carrinho';
+                divItem.innerHTML = `
+                    <span>${-item.quantidade}x ${item.nome.substring(0, 18)}...</span>
+                    <span>R$ ${subtotal.toFixed(2).replace('.', ',')}</span>
+                    <button class="btn-remover" onclick="removerDoCarrinho('${item.id}')">X</button>
+                `;
+                divLista.appendChild(divItem);
+            });
+
+            spanTotal.innerText = totalGeral.toFixed(2).replace('.', ',');
+        }
+
+        // 5. Função do Pix (Aqui você envia o array 'carrinho' para o seu backend processar)
+        function gerarPix() {
+            if (carrinho.length === 0) {
+                alert("Adicione pelo menos um produto ao carrinho antes de gerar o Pix!");
+                return;
+            }
+
+            const total = carrinho.reduce((acc, item) => acc + (item.preco * item.quantidade), 0);
+            alert(`Gerando Pix no valor total de R$ ${total.toFixed(2).replace('.', ',')} para o ponto: ${local}`);
+            
+            // Aqui você faria o fetch para a sua rota do backend de pagamento enviando o objeto 'carrinho' e o 'local'.
+        }
+
+        // Iniciar carregamento ao abrir a página
         carregarProdutos();
     </script>
-
 </body>
 </html>
