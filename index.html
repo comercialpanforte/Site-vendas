@@ -6,8 +6,8 @@
     <title>Autoatendimento - Panforte</title>
     <style>
         body { 
-            font-family: Arial, sans-serif; 
-            background: #f4f4f9; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #edf2f7; /* Fundo mais suave */
             display: flex; 
             justify-content: center; 
             align-items: center; 
@@ -15,113 +15,208 @@
             margin: 0; 
         }
         .card { 
-            background: white; 
-            padding: 20px; 
-            border-radius: 12px; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
+            background-color: white; 
+            padding: 30px; 
+            border-radius: 16px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08); /* Sombra mais suave e moderna */
             width: 100%; 
-            max-width: 400px; 
+            max-width: 420px; 
             text-align: center; 
             box-sizing: border-box;
         }
         .logo-container {
-            margin-bottom: 5px;
+            margin-bottom: 20px;
             min-height: 50px;
             display: flex;
             justify-content: center;
             align-items: center;
         }
         .logo { 
-            max-width: 150px; 
-            max-height: 60px;
+            max-width: 160px; 
+            max-height: 70px;
             object-fit: contain;
         }
         .badge { 
-            background: #e0f2f1; 
-            color: #00796b; 
-            padding: 5px 12px; 
+            background-color: #e6fffa; 
+            color: #2c7a7b; 
+            padding: 6px 14px; 
             border-radius: 20px; 
-            font-size: 12px; 
-            font-weight: bold; 
+            font-size: 13px; 
+            font-weight: 600; 
             display: inline-block; 
-            margin-bottom: 15px; 
+            margin-bottom: 25px; 
         }
         select, input, button { 
             width: 100%; 
-            padding: 10px; 
+            padding: 12px; 
             margin: 8px 0; 
-            border: 1px solid #ccc; 
-            border-radius: 6px; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 8px; 
             box-sizing: border-box; 
+            font-size: 15px;
+        }
+        select {
+            background-color: #f8fafc;
+        }
+        .produto-vitrine {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .produto-img {
+            width: 100%; 
+            height: 160px; 
+            object-fit: contain; 
+        }
+
+        /* Bloco Qtd + Botão Alinhados */
+        .block-qtd-add {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 25px;
+            background-color: #f8fafc;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+        }
+        .block-qtd-add label {
+            font-size: 16px;
+            font-weight: bold;
+            margin: 0;
+            color: #4a5568;
+        }
+        .block-qtd-add input {
+            width: 80px;
+            text-align: center;
+            margin: 0;
+            font-weight: bold;
+            font-size: 16px;
         }
         .btn-add { 
-            background: #ff9800; 
+            background-color: #ed8936; /* Laranja mais moderno */
             color: white; 
             border: none; 
             font-weight: bold; 
             cursor: pointer; 
+            flex-grow: 1; /* O botão ocupa o espaço restante */
+            margin: 0;
+            transition: background-color 0.2s;
         }
+        .btn-add:hover { background-color: #dd6b20; }
+
         .btn-pix { 
-            background: #4caf50; 
+            background-color: #48bb78; /* Verde mais moderno */
             color: white; 
             border: none; 
             font-weight: bold; 
             cursor: pointer; 
-            font-size: 16px; 
+            font-size: 17px; 
+            margin-top: 15px;
+            padding: 15px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px rgba(72, 187, 120, 0.2);
+        }
+        .btn-pix:hover { 
+            background-color: #38a169;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 8px rgba(72, 187, 120, 0.3);
+        }
+
+        /* Estilo Carrinho Aprimorado */
+        .carrinho-section {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+        .carrinho-header {
+            font-size: 15px; 
+            font-weight: 600; 
+            margin: 0 0 10px 0; 
+            color: #4a5568;
         }
         .carrinho-lista { 
-            text-align: left; 
             max-height: 150px; 
             overflow-y: auto; 
-            border: 1px solid #eee; 
-            padding: 8px; 
-            margin: 10px 0; 
-            border-radius: 5px; 
-            background: #fafafa;
+            border: 1px solid #e2e8f0; 
+            padding: 10px; 
+            border-radius: 8px; 
+            background-color: #f8fafc;
+            min-height: 60px; /* Altura mínima para não colapsar */
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
         }
+        .carrinho-vazio {
+            color: #a0aec0; 
+            font-size: 14px; 
+            font-style: italic;
+            text-align: center;
+            margin: auto; /* Centraliza o texto */
+        }
+
         .item-carrinho { 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
-            border-bottom: 1px solid #f0f0f0; 
-            padding: 6px 0; 
-            gap: 8px;
+            background-color: white;
+            border-radius: 6px;
+            padding: 8px 12px; 
+            border: 1px solid #edf2f7;
         }
         .item-carrinho .nome-item {
             flex: 1;
             text-align: left;
-            font-size: 13px;
+            font-size: 14px;
+            color: #2d3748;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            padding-right: 10px;
         }
         .item-carrinho .preco-item {
-            font-size: 13px;
+            font-size: 14px;
             font-weight: bold;
+            color: #2d3748;
             white-space: nowrap;
-            margin-right: 8px;
         }
         .btn-remover { 
-            background: #ff5252; 
+            background-color: #f56565; 
             color: white; 
             border: none; 
-            width: 24px; 
-            height: 24px; 
+            width: 22px; 
+            height: 22px; 
             border-radius: 50%; 
             cursor: pointer; 
-            font-size: 11px; 
+            font-size: 10px; 
             font-weight: bold;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
+            transition: background-color 0.2s;
+            margin-left: 10px;
         }
+        .btn-remover:hover { background-color: #e53e3e; }
+
+        .total-label {
+            font-size: 16px; color: #4a5568; margin: 5px 0 0 0;
+        }
+        .total-valor {
+            margin: 0 0 15px 0; font-size: 28px; font-weight: 900; color: #1a202c;
+        }
+
         .footer-assinatura {
-            margin-top: 15px;
-            font-size: 11px;
-            color: #888;
-            border-top: 1px solid #f0f0f0;
-            padding-top: 10px;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #718096; /* Cor cinza-azulado elegante */
+            border-top: 1px solid #e2e8f0;
+            padding-top: 15px;
+        }
+        .footer-assinatura strong {
+            color: #5c4033; /* Cor original da Panforte para o nome */
+            font-weight: bold;
         }
     </style>
 </head>
@@ -135,39 +230,42 @@
         
         <div class="badge" id="lbl-local">📍 Ponto de venda: Carregando...</div>
 
-        <h3 style="margin: 5px 0 10px 0; font-size: 16px;">Selecione o Produto:</h3>
+        <h3 style="margin: 5px 0 15px 0; font-size: 17px; color: #2d3748;">Selecione o Produto:</h3>
         
         <!-- Seletor de Produtos -->
         <select id="select-produtos">
             <option value="">Carregando produtos...</option>
         </select>
 
-        <!-- Imagem do produto selecionado -->
-        <img id="img-produto" src="HighProtein.jpg" alt="Produto" style="width: 100%; height: 140px; object-fit: contain; margin: 5px 0;">
+        <!-- Vitrine da Imagem -->
+        <div class="produto-vitrine">
+            <img id="img-produto" src="HighProtein.jpg" alt="Produto" class="produto-img">
+        </div>
 
-        <!-- Quantidade e Botão Adicionar -->
-        <div style="display: flex; gap: 10px; align-items: center;">
-            <label for="input-qtd" style="font-size: 14px; font-weight: bold;">Qtd:</label>
-            <input type="number" id="input-qtd" value="1" min="1" style="margin: 0; text-align: center;">
+        <!-- Bloco Quantidade + Botão Adicionar Alinhados -->
+        <div class="block-qtd-add">
+            <label for="input-qtd">Qtd:</label>
+            <input type="number" id="input-qtd" value="1" min="1">
             <button class="btn-add" onclick="adicionarAoCarrinho()">Adicionar</button>
         </div>
 
-        <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
-
-        <!-- Lista do Carrinho -->
-        <h4 style="margin: 0 0 5px 0; font-size: 14px; text-align: left;">Seu Carrinho:</h4>
-        <div id="lista-carrinho" class="carrinho-lista">
-            <span style="color: #888; font-size: 13px;">Carrinho vazio</span>
+        <!-- Carrinho -->
+        <div class="carrinho-section">
+            <h4 class="carrinho-header">Seu Carrinho:</h4>
+            <div id="lista-carrinho" class="carrinho-lista">
+                <span class="carrinho-vazio">Carrinho vazio</span>
+            </div>
         </div>
 
         <!-- Total -->
-        <h2 style="margin: 10px 0; font-size: 20px;">Total: R$ <span id="valor-total">0,00</span></h2>
+        <p class="total-label">Total a pagar:</p>
+        <h2 class="total-valor">R$ <span id="valor-total">0,00</span></h2>
 
         <!-- Botão Pix -->
         <button class="btn-pix" onclick="gerarPix()">Gerar PIX para Pagamento</button>
-        <p style="font-size: 11px; color: #666; margin-top: 8px;">💡 Pegue seu produto no expositor, pague via PIX e bom apetite!</p>
+        <p style="font-size: 12px; color: #718096; margin-top: 10px;">💡 Pegue seu produto no expositor, pague via PIX e bom apetite!</p>
 
-        <!-- Rodapé / Assinatura -->
+        <!-- Rodapé / Assinatura Aprimorado -->
         <div class="footer-assinatura">
             Autoatendimento by <strong>Panforte</strong>
         </div>
@@ -191,17 +289,31 @@
                 const select = document.getElementById('select-produtos');
                 select.innerHTML = '';
 
+                // Adicionar uma opção padrão
+                const defaultOption = document.createElement('option');
+                defaultOption.text = "--- Escolha um pão ---";
+                defaultOption.value = "";
+                select.appendChild(defaultOption);
+
                 produtosDisponiveis.forEach((p, index) => {
                     const option = document.createElement('option');
                     option.value = index;
-                    option.text = `${p.nome} - R$ ${p.preco.toFixed(2).replace('.', ',')}`;
+                    // Formata o preço no texto do select
+                    const precoFormatado = p.preco.toFixed(2).replace('.', ',');
+                    option.text = `${p.nome} - R$ ${precoFormatado}`;
                     select.appendChild(option);
                 });
 
+                // Seleciona a primeira opção real, se houver
+                if (produtosDisponiveis.length > 0) {
+                    select.selectedIndex = 0; // Mostra a instrução
+                }
+                
                 atualizarImagemProduto();
             } catch (erro) {
                 console.error("Erro ao carregar produtos:", erro);
-                alert("Erro ao conectar com o estoque no servidor.");
+                const select = document.getElementById('select-produtos');
+                select.innerHTML = '<option value="">Erro ao conectar com o servidor</option>';
             }
         }
 
@@ -209,23 +321,36 @@
         document.getElementById('select-produtos').addEventListener('change', atualizarImagemProduto);
 
         function atualizarImagemProduto() {
-            const index = document.getElementById('select-produtos').value;
-            if (produtosDisponiveis[index]) {
+            const select = document.getElementById('select-produtos');
+            const img = document.getElementById('img-produto');
+            const index = select.value;
+            
+            if (index !== "" && produtosDisponiveis[index]) {
                 const prod = produtosDisponiveis[index];
-                document.getElementById('img-produto').src = prod.imagem || 'HighProtein.jpg';
+                img.src = prod.imagem || 'HighProtein.jpg';
+                img.style.opacity = "1"; // Mostra a imagem
+            } else {
+                // Se nada estiver selecionado, mostra uma imagem padrão ou placeholder
+                img.src = 'HighProtein.jpg'; // Ou uma imagem de "selecione"
+                img.style.opacity = "0.3"; // Deixa mais transparente
             }
         }
 
         // 2. Adicionar item ao carrinho e resetar quantidade para 1
         function adicionarAoCarrinho() {
-            const indexSelect = document.getElementById('select-produtos').value;
+            const select = document.getElementById('select-produtos');
+            const indexSelect = select.value;
             const inputQtd = document.getElementById('input-qtd');
             const quantidade = parseInt(inputQtd.value) || 1;
 
-            if (indexSelect === "" || !produtosDisponiveis[indexSelect]) return;
+            if (indexSelect === "" || !produtosDisponiveis[indexSelect]) {
+                alert("Selecione um produto válido antes de adicionar!");
+                return;
+            }
 
             const produtoSelecionado = produtosDisponiveis[indexSelect];
 
+            // Verificar se o produto já está no carrinho para somar a quantidade
             const itemExistente = carrinho.find(item => item.id === produtoSelecionado.id);
             if (itemExistente) {
                 itemExistente.quantidade += quantidade;
@@ -242,6 +367,9 @@
 
             // Reseta o campo de quantidade para 1 após adicionar
             inputQtd.value = 1;
+            // Volta o select para o padrão (opcional, mas melhora o fluxo)
+            select.selectedIndex = 0;
+            atualizarImagemProduto(); // Atualiza a imagem para o estado inicial
         }
 
         // 3. Remover item do carrinho
@@ -256,7 +384,7 @@
             const spanTotal = document.getElementById('valor-total');
 
             if (carrinho.length === 0) {
-                divLista.innerHTML = '<span style="color: #888; font-size: 13px;">Carrinho vazio</span>';
+                divLista.innerHTML = '<span class="carrinho-vazio">Carrinho vazio</span>';
                 spanTotal.innerText = '0,00';
                 return;
             }
@@ -269,33 +397,4 @@
                 totalGeral += subtotal;
 
                 const divItem = document.createElement('div');
-                divItem.className = 'item-carrinho';
-                divItem.innerHTML = `
-                    <span class="nome-item">${item.quantidade}x ${item.nome}</span>
-                    <span class="preco-item">R$ ${subtotal.toFixed(2).replace('.', ',')}</span>
-                    <button class="btn-remover" onclick="removerDoCarrinho('${item.id}')" title="Remover item">✕</button>
-                `;
-                divLista.appendChild(divItem);
-            });
-
-            spanTotal.innerText = totalGeral.toFixed(2).replace('.', ',');
-        }
-
-        // 5. Função de fechar pedido e gerar Pix
-        function gerarPix() {
-            if (carrinho.length === 0) {
-                alert("Adicione pelo menos um produto ao carrinho antes de prosseguir!");
-                return;
-            }
-
-            const total = carrinho.reduce((acc, item) => acc + (item.preco * item.quantidade), 0);
-            
-            console.log("Enviando carrinho para pagamento:", { local, carrinho, total });
-            alert(`Carrinho validado! Total de R$ ${total.toFixed(2).replace('.', ',')} para o Ponto de venda: ${local}. Pronto para integrar com o gateway de Pix.`);
-        }
-
-        // Iniciar carregamento ao abrir a página
-        carregarProdutos();
-    </script>
-</body>
-</html>
+                divItem.className = '
