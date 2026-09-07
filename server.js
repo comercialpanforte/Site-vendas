@@ -1,8 +1,3 @@
-O que aconteceu é que todo o código do server.js foi colado de uma vez só em uma única linha contínua, o que faz o Node.js não conseguir ler o arquivo corretamente.
-
-Para corrigir e organizar o seu arquivo server.js com as quebras de linha certas, basta copiar o código formatado abaixo e colá-lo inteiro no Render:
-
-JavaScript
 const express = require('express');
 const cors = require('cors');
 const { google } = require('googleapis');
