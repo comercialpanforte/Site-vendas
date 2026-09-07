@@ -1,435 +1,113 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Autoatendimento - Panforte</title>
-    <style>
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background-color: #edf2f7; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            min-height: 100vh; 
-            margin: 0; 
-        }
-        .card { 
-            background-color: white; 
-            padding: 18px 22px; 
-            border-radius: 14px; 
-            box-shadow: 0 8px 20px rgba(0,0,0,0.08); 
-            width: 100%; 
-            max-width: 380px; 
-            text-align: center; 
-            box-sizing: border-box;
-        }
-        .logo-container {
-            margin-bottom: 10px;
-            min-height: 40px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .logo { 
-            max-width: 130px; 
-            max-height: 50px;
-            object-fit: contain;
-        }
-        .badge { 
-            background-color: #e6fffa; 
-            color: #2c7a7b; 
-            padding: 4px 10px; 
-            border-radius: 16px; 
-            font-size: 11px; 
-            font-weight: 600; 
-            display: inline-block; 
-            margin-bottom: 12px; 
-        }
-        select, input, button { 
-            width: 100%; 
-            padding: 9px; 
-            margin: 6px 0; 
-            border: 1px solid #e2e8f0; 
-            border-radius: 6px; 
-            box-sizing: border-box; 
-            font-size: 13px;
-        }
-        select {
-            background-color: #f8fafc;
-        }
-        .produto-vitrine {
-            background-color: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 8px;
-            margin-bottom: 10px;
-        }
-        .produto-img {
-            width: 100%; 
-            height: 110px; 
-            object-fit: contain; 
-        }
+const express = require('express');
+const cors = require('cors');
+const { google } = require('googleapis');
 
-        .block-qtd-add {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            margin-bottom: 12px;
-            background-color: #f8fafc;
-            padding: 6px 10px;
-            border-radius: 6px;
-            border: 1px solid #e2e8f0;
-        }
-        .block-qtd-add label {
-            font-size: 13px;
-            font-weight: bold;
-            margin: 0;
-            color: #4a5568;
-        }
-        .block-qtd-add input {
-            width: 60px;
-            text-align: center;
-            margin: 0;
-            font-weight: bold;
-            font-size: 13px;
-            padding: 6px;
-        }
-        .btn-add { 
-            background-color: #ed8936; 
-            color: white; 
-            border: none; 
-            font-weight: bold; 
-            cursor: pointer; 
-            flex-grow: 1; 
-            margin: 0;
-            padding: 7px;
-            transition: background-color 0.2s;
-        }
-        .btn-add:hover { background-color: #dd6b20; }
+const app = express();
+app.use(express.json());
+app.use(cors());
 
-        .btn-pix { 
-            background-color: #48bb78; 
-            color: white; 
-            border: none; 
-            font-weight: bold; 
-            cursor: pointer; 
-            font-size: 14px; 
-            margin-top: 10px;
-            padding: 11px;
-            transition: all 0.2s;
-            box-shadow: 0 3px 5px rgba(72, 187, 120, 0.2);
-        }
-        .btn-pix:hover { 
-            background-color: #38a169;
-            transform: translateY(-1px);
-        }
-        .btn-pix:disabled {
-            background-color: #cbd5e0;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .carrinho-section {
-            text-align: left;
-            margin-bottom: 10px;
-        }
-        .carrinho-header {
-            font-size: 13px; 
-            font-weight: 600; 
-            margin: 0 0 6px 0; 
-            color: #4a5568;
-        }
-        .carrinho-lista { 
-            max-height: 100px; 
-            overflow-y: auto; 
-            border: 1px solid #e2e8f0; 
-            padding: 6px; 
-            border-radius: 6px; 
-            background-color: #f8fafc;
-            min-height: 40px; 
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .carrinho-vazio {
-            color: #a0aec0; 
-            font-size: 12px; 
-            font-style: italic;
-            text-align: center;
-            margin: auto; 
-        }
-
-        .item-carrinho { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            background-color: white;
-            border-radius: 4px;
-            padding: 5px 8px; 
-            border: 1px solid #edf2f7;
-        }
-        .item-carrinho .nome-item {
-            flex: 1;
-            text-align: left;
-            font-size: 12px;
-            color: #2d3748;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            padding-right: 8px;
-        }
-        .item-carrinho .preco-item {
-            font-size: 12px;
-            font-weight: bold;
-            color: #2d3748;
-            white-space: nowrap;
-        }
-        .btn-remover { 
-            background-color: #f56565; 
-            color: white; 
-            border: none; 
-            width: 18px; 
-            height: 18px; 
-            border-radius: 50%; 
-            cursor: pointer; 
-            font-size: 9px; 
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            margin-left: 6px;
-        }
-        .btn-remover:hover { background-color: #e53e3e; }
-
-        .total-label {
-            font-size: 13px; color: #4a5568; margin: 4px 0 0 0;
-        }
-        .total-valor {
-            margin: 0 0 10px 0; font-size: 22px; font-weight: 900; color: #1a202c;
-        }
-
-        .footer-assinatura {
-            margin-top: 12px;
-            font-size: 11px;
-            color: #718096; 
-            border-top: 1px solid #e2e8f0;
-            padding-top: 10px;
-        }
-        .footer-assinatura strong {
-            color: #5c4033; 
-            font-weight: bold;
-        }
-    </style>
-</head>
-<body>
-
-    <div class="card">
-        <div class="logo-container">
-            <img src="logo.png" alt="Panforte" class="logo" onerror="this.onerror=null; this.src='https://via.placeholder.com/130x40?text=Panforte';">
-        </div>
+const SPREADSHEET_ID = '1F1fNMddqg0BxDjiJoaPLVf9J3z7rpbo5SpyVXEO35g0';
         
-        <div class="badge" id="lbl-local">📍 Ponto de venda: Carregando...</div>
+async function getGoogleSheetsClient() {
+    const auth = new google.auth.GoogleAuth({
+        keyFile: '/etc/secrets/credenciais.json',
+        scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+    });
+    return await google.sheets({ version: 'v4', auth });
+}
 
-        <h3 style="margin: 0 0 8px 0; font-size: 14px; color: #2d3748;">Selecione o Produto:</h3>
+// Rota de produtos (Mantém a planilha e imagens do Drive)
+app.get('/produtos', async (req, res) => {
+    try {
+        const sheets = await getGoogleSheetsClient();
+        const response = await sheets.spreadsheets.values.get({
+            spreadsheetId: SPREADSHEET_ID,
+            range: 'Produto!A2:D100',
+        });
+        const rows = response.data.values || [];
         
-        <select id="select-produtos">
-            <option value="">Carregando produtos...</option>
-        </select>
+        const produtos = rows.map(row => ({
+            id: row[0],
+            nome: row[1],
+            preco: parseFloat(String(row[2]).replace(',', '.')),
+            imagem: row[3] || 'HighProtein.jpg'
+        }));
 
-        <div class="produto-vitrine">
-            <img id="img-produto" src="HighProtein.jpg" alt="Produto" class="produto-img">
-        </div>
+        res.json(produtos);
+    } catch (error) {
+        console.error("Erro detalhado:", error);
+        res.status(500).json({ error: "Erro real: " + error.message });
+    }
+});
 
-        <div class="block-qtd-add">
-            <label for="input-qtd">Qtd:</label>
-            <input type="number" id="input-qtd" value="1" min="1">
-            <button class="btn-add" onclick="adicionarAoCarrinho()">Adicionar</button>
-        </div>
+// Rota para gerar o Pix de forma Direta (retorna o QR Code e Copia e Cola para a tela)
+app.post('/gerar-pix', async (req, res) => {
+    try {
+        const { local, itens } = req.body;
 
-        <div class="carrinho-section">
-            <h4 class="carrinho-header">Seu Carrinho:</h4>
-            <div id="lista-carrinho" class="carrinho-lista">
-                <span class="carrinho-vazio">Carrinho vazio</span>
-            </div>
-        </div>
+        if (!itens || itens.length === 0) {
+            return res.status(400).json({ error: "O carrinho está vazio." });
+        }
 
-        <p class="total-label">Total a pagar:</p>
-        <h2 class="total-valor">R$ <span id="valor-total">0,00</span></h2>
+        const valorTotal = itens.reduce((acc, item) => acc + (Number(item.preco) * Number(item.quantidade)), 0);
 
-        <button class="btn-pix" onclick="gerarPix()">Gerar PIX para Pagamento</button>
-        <p style="font-size: 11px; color: #718096; margin-top: 6px;">💡 Pegue seu produto no expositor, pague via PIX e bom apetite!</p>
+        const accessToken = process.env.MP_ACCESS_TOKEN;
+        if (!accessToken) {
+            return res.status(500).json({ error: "Token do Mercado Pago não configurado no servidor." });
+        }
 
-        <div class="footer-assinatura">
-            Autoatendimento by <strong>Panforte</strong> - Versão 1.21
-        </div>
-    </div>
-
-    <script>
-        let produtosDisponiveis = [];
-        let carrinho = [];
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const local = urlParams.get('local') || 'Geral';
-        document.getElementById('lbl-local').innerHTML = `📍 Ponto de venda: ${local}`;
-
-        async function carregarProdutos() {
-            try {
-                const resposta = await fetch('https://site-vendas-cu7g.onrender.com/produtos');
-                produtosDisponiveis = await resposta.json();
-
-                const select = document.getElementById('select-produtos');
-                select.innerHTML = '';
-
-                const defaultOption = document.createElement('option');
-                defaultOption.text = "--- Selecione seu produto ---";
-                defaultOption.value = "";
-                select.appendChild(defaultOption);
-
-                produtosDisponiveis.forEach((p, index) => {
-                    const option = document.createElement('option');
-                    option.value = index;
-                    const precoFormatado = p.preco.toFixed(2).replace('.', ',');
-                    option.text = `${p.nome} - R$ ${precoFormatado}`;
-                    select.appendChild(option);
-                });
-
-                if (produtosDisponiveis.length > 0) {
-                    select.selectedIndex = 0;
+        // Chamada direta à API de Pagamentos para Pix
+        const mpResponse = await fetch('https://api.mercadopago.com/v1/payments', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken.trim()}`,
+                'X-Idempotency-Key': `${Date.now()}-${Math.random()}`
+            },
+            body: JSON.stringify({
+                transaction_amount: Number(valorTotal.toFixed(2)),
+                description: `Autoatendimento Panforte - ${local}`,
+                payment_method_id: 'pix',
+                payer: {
+                    email: 'cliente@panforte.com.br',
+                    first_name: 'Cliente',
+                    last_name: 'Panforte',
+                    identification: {
+                        type: 'CPF',
+                        number: '00000000000'
+                    }
                 }
-                
-                atualizarImagemProduto();
-            } catch (erro) {
-                console.error("Erro ao carregar produtos:", erro);
-                const select = document.getElementById('select-produtos');
-                select.innerHTML = '<option value="">Erro ao conectar com o servidor</option>';
-            }
+            })
+        });
+
+        const data = await mpResponse.json();
+
+        if (!mpResponse.ok) {
+            console.error("Erro retornado pelo Mercado Pago (Pix Direto):", data);
+            return res.status(500).json({ error: data.message || "Erro ao gerar pagamento Pix direto." });
         }
 
-        document.getElementById('select-produtos').addEventListener('change', atualizarImagemProduto);
+        // Extrai os dados do QR Code gerados pelo MP
+        const pointOfInteraction = data.point_of_interaction;
+        const qrCodeData = pointOfInteraction?.transaction_data?.qr_code;
+        const qrCodeBase64 = pointOfInteraction?.transaction_data?.qr_code_base64;
 
-        function atualizarImagemProduto() {
-            const select = document.getElementById('select-produtos');
-            const img = document.getElementById('img-produto');
-            const index = select.value;
-            
-            if (index !== "" && produtosDisponiveis[index]) {
-                const prod = produtosDisponiveis[index];
-                img.src = prod.imagem || 'HighProtein.jpg';
-                img.style.opacity = "1";
-            } else {
-                img.src = 'HighProtein.jpg';
-                img.style.opacity = "0.3";
-            }
-        }
+        console.log(`Pix Direto gerado com sucesso | ID: ${data.id}`);
 
-        function adicionarAoCarrinho() {
-            const select = document.getElementById('select-produtos');
-            const indexSelect = select.value;
-            const inputQtd = document.getElementById('input-qtd');
-            const quantidade = parseInt(inputQtd.value) || 1;
+        res.json({
+            sucesso: true,
+            id: data.id,
+            qr_code: qrCodeData,             // Código Copia e Cola
+            qr_code_base64: qrCodeBase64     // Imagem em Base64 do QR Code
+        });
 
-            if (indexSelect === "" || !produtosDisponiveis[indexSelect]) {
-                alert("Selecione um produto válido antes de adicionar!");
-                return;
-            }
+    } catch (error) {
+        console.error("Erro ao gerar Pix Direto:", error);
+        res.status(500).json({ error: "Erro interno ao processar o Pix: " + error.message });
+    }
+});
 
-            const produtoSelecionado = produtosDisponiveis[indexSelect];
-
-            const itemExistente = carrinho.find(item => item.id === produtoSelecionado.id);
-            if (itemExistente) {
-                itemExistente.quantidade += quantidade;
-            } else {
-                carrinho.push({
-                    id: produtoSelecionado.id,
-                    nome: produtoSelecionado.nome,
-                    preco: produtoSelecionado.preco,
-                    quantidade: quantidade
-                });
-            }
-
-            renderizarCarrinho();
-
-            inputQtd.value = 1;
-            select.selectedIndex = 0;
-            atualizarImagemProduto();
-        }
-
-        function removerDoCarrinho(id) {
-            carrinho = carrinho.filter(item => item.id !== id);
-            renderizarCarrinho();
-        }
-
-        function renderizarCarrinho() {
-            const divLista = document.getElementById('lista-carrinho');
-            const spanTotal = document.getElementById('valor-total');
-
-            if (carrinho.length === 0) {
-                divLista.innerHTML = '<span class="carrinho-vazio">Carrinho vazio</span>';
-                spanTotal.innerText = '0,00';
-                return;
-            }
-
-            divLista.innerHTML = '';
-            let totalGeral = 0;
-
-            carrinho.forEach(item => {
-                const subtotal = item.preco * item.quantidade;
-                totalGeral += subtotal;
-
-                const divItem = document.createElement('div');
-                divItem.className = 'item-carrinho';
-                divItem.innerHTML = `
-                    <span class="nome-item">${item.quantidade}x ${item.nome}</span>
-                    <span class="preco-item">R$ ${subtotal.toFixed(2).replace('.', ',')}</span>
-                    <button class="btn-remover" onclick="removerDoCarrinho('${item.id}')" title="Remover item">✕</button>
-                `;
-                divLista.appendChild(divItem);
-            });
-
-            spanTotal.innerText = totalGeral.toFixed(2).replace('.', ',');
-        }
-
-        async function gerarPix() {
-            if (carrinho.length === 0) {
-                alert("Adicione pelo menos um produto ao carrinho antes de prosseguir!");
-                return;
-            }
-
-            const botaoPix = document.querySelector('.btn-pix');
-            botaoPix.disabled = true;
-            botaoPix.innerText = "Gerando QR Code Pix...";
-
-            try {
-                const resposta = await fetch('https://site-vendas-cu7g.onrender.com/gerar-pix', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ local: local, itens: carrinho })
-                });
-
-                const dados = await resposta.json();
-
-                if (resposta.ok && dados.init_point) {
-                    window.location.href = dados.init_point;
-                } else {
-                    // Fallback inteligente: se o Mercado Pago falhar por token/autorização, 
-                    // avisa o cliente com elegância e limpa o carrinho para simular o autoatendimento concluído.
-                    alert(`Pix gerado para o ponto: ${local}!\nTotal: R$ ${document.getElementById('valor-total').innerText}\n\n(Aviso: Token do Mercado Pago não autorizado na API. Configure seu Access Token no Render para pagamentos online automáticos).`);
-                    carrinho = [];
-                    renderizarCarrinho();
-                    botaoPix.disabled = false;
-                    botaoPix.innerText = "Gerar PIX para Pagamento";
-                }
-            } catch (erro) {
-                console.error("Erro na comunicação:", erro);
-                alert("Erro de conexão ao gerar o pagamento.");
-                botaoPix.disabled = false;
-                botaoPix.innerText = "Gerar PIX para Pagamento";
-            }
-        }
-
-        carregarProdutos();
-    </script>
-</body>
-</html>
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Servidor rodando na porta ${PORT}`);
+});
