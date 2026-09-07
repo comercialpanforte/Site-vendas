@@ -407,7 +407,7 @@
             spanTotal.innerText = totalGeral.toFixed(2).replace('.', ',');
         }
 
-        // 5. Função de fechar pedido e gerar Pix (Integrada com o Render)
+        // 5. Função de fechar pedido e redirecionar para o pagamento via Pix (Mercado Pago)
         async function gerarPix() {
             if (carrinho.length === 0) {
                 alert("Adicione pelo menos um produto ao carrinho antes de prosseguir!");
@@ -432,16 +432,17 @@
 
                 const dados = await resposta.json();
 
-                if (resposta.ok) {
-                    alert(`Pix gerado com sucesso para o Ponto de venda: ${local}!`);
-                    // Aqui depois podemos direcionar para a tela de QR code que o Mercado Pago retornar
+                if (resposta.ok && dados.init_point) {
+                    // Redireciona o cliente para a tela oficial do Mercado Pago com o Pix gerado
+                    window.location.href = dados.init_point;
                 } else {
-                    alert("Erro ao gerar o Pix: " + (dados.mensagem || "Tente novamente."));
+                    alert("Erro ao gerar o Pix: " + (dados.error || "Tente novamente."));
+                    botaoPix.disabled = false;
+                    botaoPix.innerText = "Gerar PIX para Pagamento";
                 }
             } catch (erro) {
                 console.error("Erro na comunicação com o servidor:", erro);
                 alert("Erro de conexão ao gerar o pagamento.");
-            } finally {
                 botaoPix.disabled = false;
                 botaoPix.innerText = "Gerar PIX para Pagamento";
             }
