@@ -210,6 +210,34 @@
             margin: 0 0 10px 0; font-size: 22px; font-weight: 900; color: #1a202c;
         }
 
+        /* Área do QR Code gerado */
+        #area-qrcode {
+            display: none;
+            margin-top: 15px;
+            padding: 12px;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+        .qrcode-img {
+            width: 160px;
+            height: 160px;
+            object-fit: contain;
+            margin-bottom: 8px;
+        }
+        .btn-copiar {
+            background-color: #3182ce;
+            color: white;
+            border: none;
+            padding: 8px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 6px;
+        }
+        .btn-copiar:hover { background-color: #2b6cb0; }
+
         .footer-assinatura {
             margin-top: 12px;
             font-size: 11px;
@@ -259,6 +287,14 @@
         <h2 class="total-valor">R$ <span id="valor-total">0,00</span></h2>
 
         <button class="btn-pix" onclick="gerarPix()">Gerar PIX para Pagamento</button>
+        
+        <!-- Bloco do QR Code que aparecerá após a geração -->
+        <div id="area-qrcode">
+            <p style="font-size: 12px; font-weight: bold; color: #2d3748; margin: 0 0 6px 0;">Escaneie o QR Code abaixo:</p>
+            <img id="img-qr-code" class="qrcode-img" src="" alt="QR Code Pix">
+            <button class="btn-copiar" onclick="copiarPix()">Copiar Código Pix</button>
+        </div>
+
         <p style="font-size: 11px; color: #718096; margin-top: 6px;">💡 Pegue seu produto no expositor, pague via PIX e bom apetite!</p>
 
         <div class="footer-assinatura">
@@ -269,6 +305,7 @@
     <script>
         let produtosDisponiveis = [];
         let carrinho = [];
+        let codigoCopiaECola = "";
 
         const urlParams = new URLSearchParams(window.location.search);
         const local = urlParams.get('local') || 'Geral';
@@ -399,7 +436,7 @@
 
             const botaoPix = document.querySelector('.btn-pix');
             botaoPix.disabled = true;
-            botaoPix.innerText = "Registrando Pix na Conta...";
+            botaoPix.innerText = "Gerando QR Code Pix...";
 
             try {
                 const resposta = await fetch('https://site-vendas-cu7g.onrender.com/gerar-pix', {
@@ -410,16 +447,25 @@
 
                 const dados = await resposta.json();
 
-                if (resposta.ok && dados.sucesso) {
-                    alert(`Pix gerado com sucesso para o ponto: ${local}!\nValor: R$ ${document.getElementById('valor-total').innerText}\n\nA transação já consta como Pendente no seu painel do Mercado Pago.`);
+                if (resposta.ok && dados.sucesso && dados.qr_code_base64) {
+                    // Salva o código copia e cola
+                    codigoCopiaECola = dados.qr_code;
+
+                    // Exibe a imagem do QR Code na tela
+                    document.getElementById('img-qr-code').src = `data:image/png;base64,${dados.qr_code_base64}`;
+                    document.getElementById('area-qrcode').style.display = 'block';
+
+                    // Oculta o botão de gerar para evitar múltiplos cliques
+                    botaoPix.style.display = 'none';
+
+                    // Limpa o carrinho
                     carrinho = [];
                     renderizarCarrinho();
                 } else {
                     alert("Erro ao gerar o Pix: " + (dados.error || "Tente novamente."));
+                    botaoPix.disabled = false;
+                    botaoPix.innerText = "Gerar PIX para Pagamento";
                 }
-                
-                botaoPix.disabled = false;
-                botaoPix.innerText = "Gerar PIX para Pagamento";
 
             } catch (erro) {
                 console.error("Erro na comunicação:", erro);
@@ -427,6 +473,15 @@
                 botaoPix.disabled = false;
                 botaoPix.innerText = "Gerar PIX para Pagamento";
             }
+        }
+
+        function copiarPix() {
+            navigator.clipboard.writeText(codigoCopiaECola).then(() => {
+                alert("Código Pix 'Copia e Cola' copiado com sucesso! Cole no aplicativo do seu banco.");
+            }).catch(err => {
+                console.error("Erro ao copiar: ", err);
+                alert("Não foi possível copiar automaticamente. Selecione o código manualmente.");
+            });
         }
 
         carregarProdutos();
