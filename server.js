@@ -40,7 +40,7 @@ app.get('/produtos', async (req, res) => {
     }
 });
 
-// Rota para gerar o Pix de forma Direta
+// Rota para gerar o Pix Direto com identificação personalizada do Ponto de Venda
 app.post('/gerar-pix', async (req, res) => {
     try {
         const { local, itens } = req.body;
@@ -56,6 +56,9 @@ app.post('/gerar-pix', async (req, res) => {
             return res.status(500).json({ error: "Token do Mercado Pago não configurado no servidor." });
         }
 
+        // Nome formatado que aparecerá no extrato do Mercado Pago
+        const nomePontoVenda = local ? `Ponto: ${local}` : 'Ponto: Geral';
+
         const mpResponse = await fetch('https://api.mercadopago.com/v1/payments', {
             method: 'POST',
             headers: {
@@ -65,11 +68,11 @@ app.post('/gerar-pix', async (req, res) => {
             },
             body: JSON.stringify({
                 transaction_amount: Number(valorTotal.toFixed(2)),
-                description: `Autoatendimento Panforte - ${local}`,
+                description: `Autoatendimento Panforte - ${nomePontoVenda}`,
                 payment_method_id: 'pix',
                 payer: {
                     email: 'cliente@panforte.com.br',
-                    first_name: 'Cliente',
+                    first_name: nomePontoVenda, // Substitui "Cliente" pelo nome do ponto de venda
                     last_name: 'Panforte',
                     identification: {
                         type: 'CPF',
@@ -90,7 +93,7 @@ app.post('/gerar-pix', async (req, res) => {
         const qrCodeData = pointOfInteraction?.transaction_data?.qr_code;
         const qrCodeBase64 = pointOfInteraction?.transaction_data?.qr_code_base64;
 
-        console.log(`Pix Direto gerado com sucesso | ID: ${data.id}`);
+        console.log(`Pix Direto gerado com sucesso | Ponto: ${local} | ID: ${data.id}`);
 
         res.json({
             sucesso: true,
