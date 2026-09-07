@@ -16,22 +16,51 @@ async function getGoogleSheetsClient() {
     return await google.sheets({ version: 'v4', auth });
 }
 
-// Rota de produtos (Mantém a planilha e imagens do Drive)
+// Rota de produtos integrada com Estoque por Local
 app.get('/produtos', async (req, res) => {
     try {
+        const localAtual = req.query.local || 'Geral';
         const sheets = await getGoogleSheetsClient();
-        const response = await sheets.spreadsheets.values.get({
-            spreadsheetId: SPREADSHEET_ID,
-            range: 'Produto!A2:D100',
+
+        // Busca dados de produtos e estoque em paralelo
+        const [responseProdutos, responseEstoque] = await Promise.all([
+            sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Produto!A2:D100' }),
+            sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Estoque!A2:C500' })
+        ]);
+
+        const rowsProdutos = responseProdutos.data.values || [];
+        const rowsEstoque = responseEstoque.data.values || [];
+
+        // Mapeia o estoque do local específico: { produto_id: quantidade }
+        const estoquePorLocal = {};
+        rowsEstoque.forEach(row => {
+            const localId = String(row[0]).trim();
+            const prodId = String(row[1]).trim();
+            const qtd = parseInt(row[2]) || 0;
+
+            if (localId.toLowerCase() === localAtual.toLowerCase()) {
+                estoquePorLocal[prodId] = qtd;
+            }
         });
-        const rows = response.data.values || [];
-        
-        const produtos = rows.map(row => ({
-            id: row[0],
-            nome: row[1],
-            preco: parseFloat(String(row[2]).replace(',', '.')),
-            imagem: row[3] || 'HighProtein.jpg'
-        }));
+
+        // Monta a lista de produtos cruzando com o estoque do local
+        const produtos = rowsProdutos.map(row => {
+            const id = String(row[0]).trim();
+            const nome = row[1];
+            const preco = parseFloat(String(row[2]).replace(',', '.'));
+            const imagem = row[3] || 'HighProtein.jpg';
+            
+            // Se o local não tiver registro na aba Estoque, assume 0 por segurança
+            const quantidadeEstoque = estoquePorLocal[id] !== undefined ? estoquePorLocal[id] : 0;
+
+            return {
+                id,
+                nome,
+                preco,
+                imagem,
+                estoque: quantidadeEstoque
+            };
+        });
 
         res.json(produtos);
     } catch (error) {
@@ -40,7 +69,7 @@ app.get('/produtos', async (req, res) => {
     }
 });
 
-// Rota para gerar o Pix Direto com identificação personalizada do Ponto de Venda
+// Rota para gerar o Pix Direto com identificação do Ponto de Venda
 app.post('/gerar-pix', async (req, res) => {
     try {
         const { local, itens } = req.body;
@@ -56,7 +85,6 @@ app.post('/gerar-pix', async (req, res) => {
             return res.status(500).json({ error: "Token do Mercado Pago não configurado no servidor." });
         }
 
-        // Nome formatado que aparecerá no extrato do Mercado Pago
         const nomePontoVenda = local ? `Ponto: ${local}` : 'Ponto: Geral';
 
         const mpResponse = await fetch('https://api.mercadopago.com/v1/payments', {
@@ -72,7 +100,7 @@ app.post('/gerar-pix', async (req, res) => {
                 payment_method_id: 'pix',
                 payer: {
                     email: 'cliente@panforte.com.br',
-                    first_name: nomePontoVenda, // Substitui "Cliente" pelo nome do ponto de venda
+                    first_name: nomePontoVenda,
                     last_name: 'Panforte',
                     identification: {
                         type: 'CPF',
@@ -91,7 +119,7 @@ app.post('/gerar-pix', async (req, res) => {
 
         const pointOfInteraction = data.point_of_interaction;
         const qrCodeData = pointOfInteraction?.transaction_data?.qr_code;
-        const qrCodeBase64 = pointOfInteraction?.transaction_data?.qr_code_base64;
+        const qrCodeBase64 = pointOfIdentifier = pointOfInteraction?.transaction_data?.qr_code_base64;
 
         console.log(`Pix Direto gerado com sucesso | Ponto: ${local} | ID: ${data.id}`);
 
