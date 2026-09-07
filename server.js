@@ -1,10 +1,6 @@
 const express = require('express');
 const cors = require('cors');
 const { google } = require('googleapis');
-const { MercadoPagoConfig, Preference } = require('mercadopago');
-
-// Inicializa o cliente do Mercado Pago com o token configurado no Render
-const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN });
 
 const app = express();
 app.use(express.json());
@@ -20,7 +16,7 @@ async function getGoogleSheetsClient() {
     return await google.sheets({ version: 'v4', auth });
 }
 
-// Rota de produtos (Mantém intacta a leitura do Google Sheets e as imagens do Drive)
+// Rota de produtos (Mantém a leitura do Google Sheets e as imagens do Drive)
 app.get('/produtos', async (req, res) => {
     try {
         const sheets = await getGoogleSheetsClient();
@@ -44,7 +40,7 @@ app.get('/produtos', async (req, res) => {
     }
 });
 
-// Rota de pagamento atualizada e simplificada para evitar o bloqueio 403 do Mercado Pago
+// Rota de pagamento configurada para exibir apenas Pix e Cartão de Crédito
 app.post('/gerar-pix', async (req, res) => {
     try {
         const { local, itens } = req.body;
@@ -60,25 +56,47 @@ app.post('/gerar-pix', async (req, res) => {
             currency_id: 'BRL'
         }));
 
-        const preference = new Preference(client);
-        const result = await preference.create({
-            body: {
+        const accessToken = process.env.MP_ACCESS_TOKEN;
+        if (!accessToken) {
+            return res.status(500).json({ error: "Token do Mercado Pago não configurado no servidor." });
+        }
+
+        const mpResponse = await fetch('https://api.mercadopago.com/checkout/preferences', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken.trim()}`
+            },
+            body: JSON.stringify({
                 items: itemsForMP,
+                payment_methods: {
+                    excluded_payment_types: [
+                        { id: "ticket" } // Exclui boletos, mantendo apenas Pix e Cartões
+                    ],
+                    installments: 1
+                },
                 back_urls: {
                     success: "https://comercialpanforte.github.io/Site-vendas/",
                     failure: "https://comercialpanforte.github.io/Site-vendas/",
                     pending: "https://comercialpanforte.github.io/Site-vendas/"
                 },
                 auto_return: "approved"
-            }
+            })
         });
 
-        console.log(`Preferência gerada com sucesso | ID: ${result.id}`);
+        const data = await mpResponse.json();
+
+        if (!mpResponse.ok) {
+            console.error("Erro retornado pelo Mercado Pago:", data);
+            return res.status(500).json({ error: data.message || "Erro ao comunicar com o Mercado Pago." });
+        }
+
+        console.log(`Preferência gerada com sucesso | ID: ${data.id}`);
 
         res.json({
             sucesso: true,
-            id: result.id,
-            init_point: result.init_point
+            id: data.id,
+            init_point: data.init_point
         });
 
     } catch (error) {
