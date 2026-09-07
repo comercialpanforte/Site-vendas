@@ -16,7 +16,7 @@ async function getGoogleSheetsClient() {
     return await google.sheets({ version: 'v4', auth });
 }
 
-// Rota de produtos (Mantém a leitura do Google Sheets e as imagens do Drive)
+// Rota de produtos (Mantém a planilha e imagens do Drive)
 app.get('/produtos', async (req, res) => {
     try {
         const sheets = await getGoogleSheetsClient();
@@ -40,7 +40,7 @@ app.get('/produtos', async (req, res) => {
     }
 });
 
-// Rota de pagamento configurada para exibir apenas Pix e Cartão de Crédito
+// Rota para gerar o Pix de forma Direta (retorna o QR Code e Copia e Cola para a tela)
 app.post('/gerar-pix', async (req, res) => {
     try {
         const { local, itens } = req.body;
@@ -49,59 +49,61 @@ app.post('/gerar-pix', async (req, res) => {
             return res.status(400).json({ error: "O carrinho está vazio." });
         }
 
-        const itemsForMP = itens.map(item => ({
-            title: `${item.quantidade}x ${item.nome} (${local})`,
-            unit_price: Number(item.preco),
-            quantity: Number(item.quantidade),
-            currency_id: 'BRL'
-        }));
+        const valorTotal = itens.reduce((acc, item) => acc + (Number(item.preco) * Number(item.quantidade)), 0);
 
         const accessToken = process.env.MP_ACCESS_TOKEN;
         if (!accessToken) {
             return res.status(500).json({ error: "Token do Mercado Pago não configurado no servidor." });
         }
 
-        const mpResponse = await fetch('https://api.mercadopago.com/checkout/preferences', {
+        // Chamada direta à API de Pagamentos para Pix
+        const mpResponse = await fetch('https://api.mercadopago.com/v1/payments', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${accessToken.trim()}`
+                'Authorization': `Bearer ${accessToken.trim()}`,
+                'X-Idempotency-Key': `${Date.now()}-${Math.random()}`
             },
             body: JSON.stringify({
-                items: itemsForMP,
-                payment_methods: {
-                    excluded_payment_types: [
-                        { id: "ticket" } // Exclui boletos, mantendo apenas Pix e Cartões
-                    ],
-                    installments: 1
-                },
-                back_urls: {
-                    success: "https://comercialpanforte.github.io/Site-vendas/",
-                    failure: "https://comercialpanforte.github.io/Site-vendas/",
-                    pending: "https://comercialpanforte.github.io/Site-vendas/"
-                },
-                auto_return: "approved"
+                transaction_amount: Number(valorTotal.toFixed(2)),
+                description: `Autoatendimento Panforte - ${local}`,
+                payment_method_id: 'pix',
+                payer: {
+                    email: 'cliente@panforte.com.br',
+                    first_name: 'Cliente',
+                    last_name: 'Panforte',
+                    identification: {
+                        type: 'CPF',
+                        number: '00000000000'
+                    }
+                }
             })
         });
 
         const data = await mpResponse.json();
 
         if (!mpResponse.ok) {
-            console.error("Erro retornado pelo Mercado Pago:", data);
-            return res.status(500).json({ error: data.message || "Erro ao comunicar com o Mercado Pago." });
+            console.error("Erro retornado pelo Mercado Pago (Pix Direto):", data);
+            return res.status(500).json({ error: data.message || "Erro ao gerar pagamento Pix direto." });
         }
 
-        console.log(`Preferência gerada com sucesso | ID: ${data.id}`);
+        // Extrai os dados do QR Code gerados pelo MP
+        const pointOfInteraction = data.point_of_interaction;
+        const qrCodeData = pointOfInteraction?.transaction_data?.qr_code;
+        const qrCodeBase64 = pointOfInteraction?.transaction_data?.qr_code_base64;
+
+        console.log(`Pix Direto gerado com sucesso | ID: ${data.id}`);
 
         res.json({
             sucesso: true,
             id: data.id,
-            init_point: data.init_point
+            qr_code: qrCodeData,             // Código Copia e Cola
+            qr_code_base64: qrCodeBase64     // Imagem em Base64 do QR Code
         });
 
     } catch (error) {
-        console.error("Erro ao gerar Pix no Mercado Pago:", error);
-        res.status(500).json({ error: "Erro interno ao processar o pagamento: " + error.message });
+        console.error("Erro ao gerar Pix Direto:", error);
+        res.status(500).json({ error: "Erro interno ao processar o Pix: " + error.message });
     }
 });
 
