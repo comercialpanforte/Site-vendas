@@ -107,6 +107,7 @@
             transition: background-color 0.2s;
         }
         .btn-add:hover { background-color: #dd6b20; }
+        .btn-add:disabled { background-color: #cbd5e0; cursor: not-allowed; }
 
         .btn-pix { 
             background-color: #48bb78; 
@@ -210,7 +211,6 @@
             margin: 0 0 10px 0; font-size: 22px; font-weight: 900; color: #1a202c;
         }
 
-        /* Área do QR Code gerado */
         #area-qrcode {
             display: none;
             margin-top: 15px;
@@ -262,7 +262,7 @@
 
         <h3 style="margin: 0 0 8px 0; font-size: 14px; color: #2d3748;">Selecione o Produto:</h3>
         
-        <select id="select-produtos">
+        <select id="select-produtos" onchange="atualizarInterfaceProduto()">
             <option value="">Carregando produtos...</option>
         </select>
 
@@ -273,7 +273,7 @@
         <div class="block-qtd-add">
             <label for="input-qtd">Qtd:</label>
             <input type="number" id="input-qtd" value="1" min="1">
-            <button class="btn-add" onclick="adicionarAoCarrinho()">Adicionar</button>
+            <button id="btn-adicionar" class="btn-add" onclick="adicionarAoCarrinho()">Adicionar</button>
         </div>
 
         <div class="carrinho-section">
@@ -288,7 +288,6 @@
 
         <button class="btn-pix" onclick="gerarPix()">Gerar PIX para Pagamento</button>
         
-        <!-- Bloco do QR Code que aparecerá após a geração -->
         <div id="area-qrcode">
             <p style="font-size: 12px; font-weight: bold; color: #2d3748; margin: 0 0 6px 0;">Escaneie o QR Code abaixo:</p>
             <img id="img-qr-code" class="qrcode-img" src="" alt="QR Code Pix">
@@ -298,7 +297,7 @@
         <p style="font-size: 11px; color: #718096; margin-top: 6px;">💡 Pegue seu produto no expositor, pague via PIX e bom apetite!</p>
 
         <div class="footer-assinatura">
-            Autoatendimento by <strong>Panforte</strong> - Versão 1.22
+            Autoatendimento by <strong>Panforte</strong> - Versão 1.23
         </div>
     </div>
 
@@ -313,7 +312,8 @@
 
         async function carregarProdutos() {
             try {
-                const resposta = await fetch('https://site-vendas-cu7g.onrender.com/produtos');
+                // Passa o local na URL para o backend filtrar o estoque específico
+                const resposta = await fetch(`https://site-vendas-cu7g.onrender.com/produtos?local=${encodeURIComponent(local)}`);
                 produtosDisponiveis = await resposta.json();
 
                 const select = document.getElementById('select-produtos');
@@ -328,7 +328,12 @@
                     const option = document.createElement('option');
                     option.value = index;
                     const precoFormatado = p.preco.toFixed(2).replace('.', ',');
-                    option.text = `${p.nome} - R$ ${precoFormatado}`;
+                    
+                    if (p.estoque <= 0) {
+                        option.text = `${p.nome} - R$ ${precoFormatado} (ESGOTADO)`;
+                    } else {
+                        option.text = `${p.nome} - R$ ${precoFormatado} (Estoque: ${p.estoque})`;
+                    }
                     select.appendChild(option);
                 });
 
@@ -336,7 +341,7 @@
                     select.selectedIndex = 0;
                 }
                 
-                atualizarImagemProduto();
+                atualizarInterfaceProduto();
             } catch (erro) {
                 console.error("Erro ao carregar produtos:", erro);
                 const select = document.getElementById('select-produtos');
@@ -344,20 +349,33 @@
             }
         }
 
-        document.getElementById('select-produtos').addEventListener('change', atualizarImagemProduto);
-
-        function atualizarImagemProduto() {
+        function atualizarInterfaceProduto() {
             const select = document.getElementById('select-produtos');
             const img = document.getElementById('img-produto');
+            const btnAdicionar = document.getElementById('btn-adicionar');
             const index = select.value;
             
             if (index !== "" && produtosDisponiveis[index]) {
                 const prod = produtosDisponiveis[index];
                 img.src = prod.imagem || 'HighProtein.jpg';
                 img.style.opacity = "1";
+
+                // Se o estoque for 0, bloqueia o botão de adicionar
+                if (prod.estoque <= 0) {
+                    btnAdicionar.disabled = true;
+                    btnAdicionar.innerText = "Indisponível (Esgotado)";
+                    btnAdicionar.style.backgroundColor = "#cbd5e0";
+                } else {
+                    btnAdicionar.disabled = false;
+                    btnAdicionar.innerText = "Adicionar";
+                    btnAdicionar.style.backgroundColor = "#ed8936";
+                }
             } else {
                 img.src = 'HighProtein.jpg';
                 img.style.opacity = "0.3";
+                btnAdicionar.disabled = false;
+                btnAdicionar.innerText = "Adicionar";
+                btnAdicionar.style.backgroundColor = "#ed8936";
             }
         }
 
@@ -374,7 +392,19 @@
 
             const produtoSelecionado = produtosDisponiveis[indexSelect];
 
+            if (produtoSelecionado.estoque <= 0) {
+                alert("Este produto está esgotado no momento neste ponto de venda!");
+                return;
+            }
+
             const itemExistente = carrinho.find(item => item.id === produtoSelecionado.id);
+            const qtdAtualNoCarrinho = itemExistente ? itemExistente.quantidade : 0;
+
+            if ((qtdAtualNoCarrinho + quantidade) > produtoSelecionado.estoque) {
+                alert(`Quantidade solicitada ultrapassa o estoque disponível (${produtoSelecionado.estoque} unidades).`);
+                return;
+            }
+
             if (itemExistente) {
                 itemExistente.quantidade += quantidade;
             } else {
@@ -390,7 +420,7 @@
 
             inputQtd.value = 1;
             select.selectedIndex = 0;
-            atualizarImagemProduto();
+            atualizarInterfaceProduto();
         }
 
         function removerDoCarrinho(id) {
@@ -448,17 +478,13 @@
                 const dados = await resposta.json();
 
                 if (resposta.ok && dados.sucesso && dados.qr_code_base64) {
-                    // Salva o código copia e cola
                     codigoCopiaECola = dados.qr_code;
 
-                    // Exibe a imagem do QR Code na tela
                     document.getElementById('img-qr-code').src = `data:image/png;base64,${dados.qr_code_base64}`;
                     document.getElementById('area-qrcode').style.display = 'block';
 
-                    // Oculta o botão de gerar para evitar múltiplos cliques
                     botaoPix.style.display = 'none';
 
-                    // Limpa o carrinho
                     carrinho = [];
                     renderizarCarrinho();
                 } else {
