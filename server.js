@@ -3,8 +3,8 @@ const cors = require('cors');
 const { google } = require('googleapis');
 const { MercadoPagoConfig, Preference } = require('mercadopago');
 
-// Configure o seu Access Token do Mercado Pago (pode ser via variável de ambiente process.env.MP_ACCESS_TOKEN)
-const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN || 'SEU_ACCESS_TOKEN_AQUI' });
+// Inicializa o cliente do Mercado Pago com o token configurado no Render
+const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN });
 
 const app = express();
 app.use(express.json());
@@ -20,6 +20,7 @@ async function getGoogleSheetsClient() {
     return await google.sheets({ version: 'v4', auth });
 }
 
+// Rota de produtos (Mantém intacta a leitura do Google Sheets e as imagens do Drive)
 app.get('/produtos', async (req, res) => {
     try {
         const sheets = await getGoogleSheetsClient();
@@ -43,7 +44,7 @@ app.get('/produtos', async (req, res) => {
     }
 });
 
-// Rota para processar o carrinho e gerar a preferência/Pix via Mercado Pago
+// Rota de pagamento atualizada e simplificada para evitar o bloqueio 403 do Mercado Pago
 app.post('/gerar-pix', async (req, res) => {
     try {
         const { local, itens } = req.body;
@@ -52,7 +53,6 @@ app.post('/gerar-pix', async (req, res) => {
             return res.status(400).json({ error: "O carrinho está vazio." });
         }
 
-        // Mapeia os itens do carrinho para o formato aceito pelo Mercado Pago
         const itemsForMP = itens.map(item => ({
             title: `${item.quantidade}x ${item.nome} (${local})`,
             unit_price: Number(item.preco),
@@ -60,30 +60,25 @@ app.post('/gerar-pix', async (req, res) => {
             currency_id: 'BRL'
         }));
 
-        // Cria a preferência de pagamento no Mercado Pago
         const preference = new Preference(client);
         const result = await preference.create({
             body: {
                 items: itemsForMP,
-                payment_methods: {
-                    excluded_payment_types: [
-                        { id: "credit_card" },
-                        { id: "ticket" }
-                    ],
-                    installments: 1
+                back_urls: {
+                    success: "https://comercialpanforte.github.io/Site-vendas/",
+                    failure: "https://comercialpanforte.github.io/Site-vendas/",
+                    pending: "https://comercialpanforte.github.io/Site-vendas/"
                 },
-                statement_descriptor: "PANFORTE"
+                auto_return: "approved"
             }
         });
 
-        console.log(`Preferência gerada para o ponto: ${local} | ID: ${result.id}`);
+        console.log(`Preferência gerada com sucesso | ID: ${result.id}`);
 
-        // Retorna o link de inicialização/pagamento para o front-end
         res.json({
             sucesso: true,
             id: result.id,
-            init_point: result.init_point, // Link para redirecionar ou abrir o pagamento
-            sandbox_init_point: result.sandbox_init_point
+            init_point: result.init_point
         });
 
     } catch (error) {
