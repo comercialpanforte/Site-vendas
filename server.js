@@ -65,7 +65,7 @@ app.get('/produtos', async (req, res) => {
     }
 });
 
-// Rota para gerar Pix e registrar Venda pendente (Sem mexer no estoque antecipadamente)
+// Rota para gerar Pix e registrar Venda pendente
 app.post('/gerar-pix', async (req, res) => {
     try {
         const { local, itens } = req.body;
@@ -84,7 +84,6 @@ app.post('/gerar-pix', async (req, res) => {
 
         const nomePontoVenda = `Ponto: ${localAtual}`;
 
-        // Chamada ao Mercado Pago para gerar o Pix
         const mpResponse = await fetch('https://api.mercadopago.com/v1/payments', {
             method: 'POST',
             headers: {
@@ -120,29 +119,25 @@ app.post('/gerar-pix', async (req, res) => {
         const qrCodeBase64 = pointOfInteraction?.transaction_data?.qr_code_base64;
         const paymentId = data.id;
 
-        // Formata os itens vendidos (Ex: "1x PÃO DE FORMA HIGH PROTEIN 400g")
-        // Como o carrinho do front-end envia apenas nome e preço, guardamos o resumo. 
-        // Nota: Para a baixa exata por ID, guardamos os IDs detalhados no resumo ou salvamos em formato estruturado.
         const resumoItens = itens.map(i => `${i.quantidade}x ${i.nome} (ID:${i.id})`).join(', ');
         const dataHoraAtual = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
 
         const sheets = await getGoogleSheetsClient();
 
-        // Registra a venda na aba "Vendas" (Colunas A até H)
         await sheets.spreadsheets.values.append({
             spreadsheetId: SPREADSHEET_ID,
             range: 'Vendas!A:H',
             valueInputOption: 'USER_ENTERED',
             requestBody: {
                 values: [[
-                    dataHoraAtual,       // A: data_hora
-                    paymentId,           // B: venda_id
-                    paymentId,           // C: payment_id
-                    localAtual,          // D: local_id
-                    resumoItens,         // E: itens_vendidos
-                    valorTotal.toFixed(2), // F: valor_total
-                    'Pendente',          // G: status
-                    'Pendente'           // H: Estoque Atualizado
+                    dataHoraAtual,
+                    paymentId,
+                    paymentId,
+                    localAtual,
+                    resumoItens,
+                    valorTotal.toFixed(2),
+                    'Pendente',
+                    'Pendente'
                 ]]
             }
         });
@@ -162,113 +157,144 @@ app.post('/gerar-pix', async (req, res) => {
     }
 });
 
-// Rota inteligente para checar pagamentos pendentes, aprovar e dar baixa real no estoque
-app.get('/verificar-vendas', async (req, res) => {
+// Função interna reutilizável para processar a aprovação e a baixa no estoque
+async function processarAprovacaoPagamento(paymentId) {
+    const accessToken = process.env.MP_ACCESS_TOKEN;
+    const mpRes = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
+        headers: { 'Authorization': `Bearer ${accessToken.trim()}` }
+    });
+    const mpData = await mpRes.json();
+
+    if (!mpRes.ok || mpData.status !== 'approved') {
+        return { processado: false, motivo: 'Pagamento não aprovado ou não encontrado' };
+    }
+
+    const sheets = await getGoogleSheetsClient();
+
+    const responseVendas = await sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: 'Vendas!A2:H500'
+    });
+    const rowsVendas = responseVendas.data.values || [];
+
+    let vendaIndex = -1;
+    let vendaRow = null;
+
+    for (let i = 0; i < rowsVendas.length; i++) {
+        if (String(rowsVendas[i][2]) === String(paymentId)) {
+            vendaIndex = i;
+            vendaRow = rowsVendas[i];
+            break;
+        }
+    }
+
+    if (!vendaIndex === -1 || !vendaRow) {
+        return { processado: false, motivo: 'Venda não localizada na planilha' };
+    }
+
+    // Se o estoque já foi atualizado para esta venda, evita duplicidade
+    if (vendaRow[7] === 'OK') {
+        return { processado: true, motivo: 'Estoque já havia sido baixado anteriormente' };
+    }
+
+    const localId = vendaRow[3];
+    const itensStr = vendaRow[4];
+
+    // Busca o estoque atual
+    const responseEstoque = await sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: 'Estoque!A2:C500'
+    });
+    const rowsEstoque = responseEstoque.data.values || [];
+
+    // Executa a baixa do estoque
+    const regexItem = /(\d+)x\s+([^(]+)\(ID:(\d+)\)/g;
+    let match;
+    while ((match = regexItem.exec(itensStr)) !== null) {
+        const qtdComprada = parseInt(match[1]);
+        const prodId = match[3];
+
+        for (let e = 0; e < rowsEstoque.length; e++) {
+            const eRow = rowsEstoque[e];
+            const eLocal = String(eRow[0]).trim();
+            const eProdId = String(eRow[1]).trim();
+            const eQtdAtual = parseInt(eRow[2]) || 0;
+
+            if (eLocal.toLowerCase() === localId.toLowerCase() && eProdId === prodId) {
+                const novaQtd = Math.max(0, eQtdAtual - qtdComprada);
+                const eRowIndex = e + 2;
+
+                await sheets.spreadsheets.values.update({
+                    spreadsheetId: SPREADSHEET_ID,
+                    range: `Estoque!C${eRowIndex}`,
+                    valueInputOption: 'USER_ENTERED',
+                    requestBody: { values: [[novaQtd]] }
+                });
+                break;
+            }
+        }
+    }
+
+    // Atualiza o status na aba Vendas
+    const rowIndex = vendaIndex + 2;
+    await sheets.spreadsheets.values.update({
+        spreadsheetId: SPREADSHEET_ID,
+        range: `G${rowIndex}:H${rowIndex}`,
+        valueInputOption: 'USER_ENTERED',
+        requestBody: { values: [['Aprovado', 'OK']] }
+    });
+
+    console.log(`Webhook: Venda ${paymentId} aprovada e estoque baixado com sucesso!`);
+    return { processado: true };
+}
+
+// 1. Rota de Webhook que recebe os avisos automáticos do Mercado Pago
+app.post('/webhook', async (req, res) => {
     try {
-        const accessToken = process.env.MP_ACCESS_TOKEN;
-        if (!accessToken) {
-            return res.status(500).json({ error: "Token do Mercado Pago não configurado." });
+        const body = req.body;
+        console.log("Webhook recebido do MP:", body);
+
+        // O Mercado Pago envia notificações de diferentes tipos
+        if (body.type === 'payment' || body.action === 'payment.created' || body.action === 'payment.updated') {
+            const paymentId = body.data?.id || body.id;
+            if (paymentId) {
+                await processarAprovacaoPagamento(paymentId);
+            }
         }
 
-        const sheets = await getGoogleSheetsClient();
+        // Sempre responder 200 rapidamente para o Mercado Pago não reenviar o webhook
+        res.status(200).send('OK');
+    } catch (error) {
+        console.error("Erro no processamento do Webhook:", error);
+        res.status(500).send('Erro interno');
+    }
+});
 
-        // Busca todas as vendas registradas
+// 2. Rota de segurança manual (caso queira forçar a varredura)
+app.get('/verificar-vendas', async (req, res) => {
+    try {
+        const sheets = await getGoogleSheetsClient();
         const responseVendas = await sheets.spreadsheets.values.get({
             spreadsheetId: SPREADSHEET_ID,
             range: 'Vendas!A2:H500'
         });
         const rowsVendas = responseVendas.data.values || [];
+        let totalProcessados = 0;
 
-        // Busca a tabela de estoque atual
-        const responseEstoque = await sheets.spreadsheets.values.get({
-            spreadsheetId: SPREADSHEET_ID,
-            range: 'Estoque!A2:C500'
-        });
-        const rowsEstoque = responseEstoque.data.values || [];
+        for (const row of rowsVendas) {
+            const paymentId = row[2];
+            const estoqueStatus = row[7];
 
-        let processadas = 0;
-
-        for (let i = 0; i < rowsVendas.length; i++) {
-            const row = rowsVendas[i];
-            const paymentId = row[2]; // Coluna C (payment_id)
-            const localId = row[3];   // Coluna D (local_id)
-            const itensStr = row[4];  // Coluna E (itens_vendidos)
-            const statusAtual = row[6]; // Coluna G (status)
-            const estoqueStatus = row[7]; // Coluna H (Estoque Atualizado)
-
-            // Se ainda estiver pendente de estoque, vamos checar no Mercado Pago
             if (estoqueStatus === 'Pendente' && paymentId) {
-                try {
-                    const mpRes = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
-                        headers: { 'Authorization': `Bearer ${accessToken.trim()}` }
-                    });
-                    const mpData = await mpRes.json();
-
-                    if (mpRes.ok && mpData.status === 'approved') {
-                        const rowIndex = i + 2; // Linha real na planilha
-
-                        // 1. Executa a baixa do estoque na aba "Estoque"
-                        // Extrai os itens do formato "1x Nome (ID:190)"
-                        const regexItem = /(\d+)x\s+([^(]+)\(ID:(\d+)\)/g;
-                        let match;
-                        while ((match = regexItem.exec(itensStr)) !== null) {
-                            const qtdComprada = parseInt(match[1]);
-                            const prodId = match[3];
-
-                            for (let e = 0; e < rowsEstoque.length; e++) {
-                                const eRow = rowsEstoque[e];
-                                const eLocal = String(eRow[0]).trim();
-                                const eProdId = String(eRow[1]).trim();
-                                const eQtdAtual = parseInt(eRow[2]) || 0;
-
-                                if (eLocal.toLowerCase() === localId.toLowerCase() && eProdId === prodId) {
-                                    const novaQtd = Math.max(0, eQtdAtual - qtdComprada);
-                                    const eRowIndex = e+ 2;
-
-                                    await sheets.spreadsheets.values.update({
-                                        spreadsheetId: SPREADSHEET_ID,
-                                        range: `Estoque!C${eRowIndex}`,
-                                        valueInputOption: 'USER_ENTERED',
-                                        requestBody: { values: [[novaQtd]] }
-                                    });
-                                    // Atualiza em memória para próximas iterações se necessário
-                                    rowsEstoque[e][2] = novaQtd;
-                                    break;
-                                }
-                            }
-                        }
-
-                        // 2. Atualiza a aba Vendas: Status = Aprovado e Estoque Atualizado = OK
-                        await sheets.spreadsheets.values.update({
-                            spreadsheetId: SPREADSHEET_ID,
-                            range: `G${rowIndex}:H${rowIndex}`,
-                            valueInputOption: 'USER_ENTERED',
-                            requestBody: { values: [['Aprovado', 'OK']] }
-                        });
-
-                        processadas++;
-                        console.log(`Venda ${paymentId} aprovada e estoque baixado com sucesso!`);
-                    } else if (mpRes.ok && (mpData.status === 'cancelled' || mpData.status === 'rejected')) {
-                        // Se foi cancelado/rejeitado, apenas marca o status para não checar toda vez
-                        const rowIndex = i + 2;
-                        await sheets.spreadsheets.values.update({
-                            spreadsheetId: SPREADSHEET_ID,
-                            range: `G${rowIndex}:H${rowIndex}`,
-                            valueInputOption: 'USER_ENTERED',
-                            requestBody: { values: [[mpData.status, 'Cancelado']] }
-                        });
-                    }
-                } catch (mpErr) {
-                    console.error(`Erro ao consultar pagamento ${paymentId}:`, mpErr);
-                }
+                const resultado = await processarAprovacaoPagamento(paymentId);
+                if (resultado.processado) totalProcessados++;
             }
         }
 
-        res.json({ sucesso: true, mensagem: `Verificação concluída. ${processadas} venda(s) aprovada(s) e baixada(s) no estoque.` });
-
+        res.json({ sucesso: true, mensagem: `Verificação manual concluída. ${totalProcessados} venda(s) processada(s).` });
     } catch (error) {
-        console.error("Erro ao verificar vendas:", error);
-        res.status(500).json({ error: "Erro ao processar verificação: " + error.message });
+        console.error("Erro na verificação manual:", error);
+        res.status(500).json({ error: error.message });
     }
 });
 
