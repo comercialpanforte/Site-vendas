@@ -1,3 +1,8 @@
+O que aconteceu é que todo o código do server.js foi colado de uma vez só em uma única linha contínua, o que faz o Node.js não conseguir ler o arquivo corretamente.
+
+Para corrigir e organizar o seu arquivo server.js com as quebras de linha certas, basta copiar o código formatado abaixo e colá-lo inteiro no Render:
+
+JavaScript
 const express = require('express');
 const cors = require('cors');
 const { google } = require('googleapis');
@@ -40,7 +45,7 @@ app.get('/produtos', async (req, res) => {
     }
 });
 
-// Rota para gerar o Pix de forma Direta (retorna o QR Code e Copia e Cola para a tela)
+// Rota para gerar o Pix de forma Direta
 app.post('/gerar-pix', async (req, res) => {
     try {
         const { local, itens } = req.body;
@@ -56,7 +61,6 @@ app.post('/gerar-pix', async (req, res) => {
             return res.status(500).json({ error: "Token do Mercado Pago não configurado no servidor." });
         }
 
-        // Chamada direta à API de Pagamentos para Pix
         const mpResponse = await fetch('https://api.mercadopago.com/v1/payments', {
             method: 'POST',
             headers: {
@@ -87,7 +91,6 @@ app.post('/gerar-pix', async (req, res) => {
             return res.status(500).json({ error: data.message || "Erro ao gerar pagamento Pix direto." });
         }
 
-        // Extrai os dados do QR Code gerados pelo MP
         const pointOfInteraction = data.point_of_interaction;
         const qrCodeData = pointOfInteraction?.transaction_data?.qr_code;
         const qrCodeBase64 = pointOfInteraction?.transaction_data?.qr_code_base64;
@@ -97,8 +100,8 @@ app.post('/gerar-pix', async (req, res) => {
         res.json({
             sucesso: true,
             id: data.id,
-            qr_code: qrCodeData,             // Código Copia e Cola
-            qr_code_base64: qrCodeBase64     // Imagem em Base64 do QR Code
+            qr_code: qrCodeData,
+            qr_code_base64: qrCodeBase64
         });
 
     } catch (error) {
