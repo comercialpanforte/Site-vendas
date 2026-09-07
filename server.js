@@ -16,13 +16,12 @@ async function getGoogleSheetsClient() {
     return await google.sheets({ version: 'v4', auth });
 }
 
-// Rota de produtos integrada com Estoque por Local
+// Rota de produtos integrada com Estoque por Local (Oculta números e mostra apenas a disponibilidade)
 app.get('/produtos', async (req, res) => {
     try {
         const localAtual = req.query.local || 'Geral';
         const sheets = await getGoogleSheetsClient();
 
-        // Busca dados de produtos e estoque em paralelo
         const [responseProdutos, responseEstoque] = await Promise.all([
             sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Produto!A2:D100' }),
             sheets.spreadsheets.values.get({ spreadsheetId: SPREADSHEET_ID, range: 'Estoque!A2:C500' })
@@ -31,7 +30,6 @@ app.get('/produtos', async (req, res) => {
         const rowsProdutos = responseProdutos.data.values || [];
         const rowsEstoque = responseEstoque.data.values || [];
 
-        // Mapeia o estoque do local específico: { produto_id: quantidade }
         const estoquePorLocal = {};
         rowsEstoque.forEach(row => {
             const localId = String(row[0]).trim();
@@ -43,14 +41,12 @@ app.get('/produtos', async (req, res) => {
             }
         });
 
-        // Monta a lista de produtos cruzando com o estoque do local
         const produtos = rowsProdutos.map(row => {
             const id = String(row[0]).trim();
             const nome = row[1];
             const preco = parseFloat(String(row[2]).replace(',', '.'));
             const imagem = row[3] || 'HighProtein.jpg';
             
-            // Se o local não tiver registro na aba Estoque, assume 0 por segurança
             const quantidadeEstoque = estoquePorLocal[id] !== undefined ? estoquePorLocal[id] : 0;
 
             return {
@@ -69,7 +65,7 @@ app.get('/produtos', async (req, res) => {
     }
 });
 
-// Rota para gerar o Pix Direto com identificação do Ponto de Venda
+// Rota para gerar o Pix Direto, registrar na aba Vendas e enviar ao Mercado Pago
 app.post('/gerar-pix', async (req, res) => {
     try {
         const { local, itens } = req.body;
@@ -119,13 +115,42 @@ app.post('/gerar-pix', async (req, res) => {
 
         const pointOfInteraction = data.point_of_interaction;
         const qrCodeData = pointOfInteraction?.transaction_data?.qr_code;
-        const qrCodeBase64 = pointOfIdentifier = pointOfInteraction?.transaction_data?.qr_code_base64;
+        const qrCodeBase64 = pointOfInteraction?.transaction_data?.qr_code_base64;
+        const paymentId = data.id;
 
-        console.log(`Pix Direto gerado com sucesso | Ponto: ${local} | ID: ${data.id}`);
+        // Formata os itens vendidos para texto (Ex: "2x Pão Caseiro, 1x Pão Integral")
+        const resumoItens = itens.map(i => `${i.quantidade}x ${i.nome}`).join(', ');
+        
+        // Data e hora atual no formato brasileiro
+        const dataHoraAtual = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+
+        // Grava a venda automaticamente na aba "Vendas" da Planilha
+        try {
+            const sheets = await getGoogleSheetsClient();
+            await sheets.spreadsheets.values.append({
+                spreadsheetId: SPREADSHEET_ID,
+                range: 'Vendas!A:G',
+                valueInputOption: 'USER_ENTERED',
+                requestBody: {
+                    values: [[
+                        dataHoraAtual,       // data_hora
+                        paymentId,           // venda_id
+                        paymentId,           // payment_id
+                        local || 'Geral',    // local_id
+                        resumoItens,         // itens_vendidos
+                        valorTotal.toFixed(2), // valor_total
+                        'Pendente'           // status
+                    ]]
+                }
+            });
+            console.log(`Venda ${paymentId} registrada com sucesso na aba Vendas.`);
+        } catch (sheetError) {
+            console.error("Erro ao registrar venda na planilha (não bloqueia o pagamento):", sheetError);
+        }
 
         res.json({
             sucesso: true,
-            id: data.id,
+            id: paymentId,
             qr_code: qrCodeData,
             qr_code_base64: qrCodeBase64
         });
