@@ -1,6 +1,10 @@
 const express = require('express');
 const cors = require('cors');
 const { google } = require('googleapis');
+const { MercadoPagoConfig, Preference } = require('mercadopago');
+
+// Configure o seu Access Token do Mercado Pago (pode ser via variável de ambiente process.env.MP_ACCESS_TOKEN)
+const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN || 'SEU_ACCESS_TOKEN_AQUI' });
 
 const app = express();
 app.use(express.json());
@@ -39,7 +43,7 @@ app.get('/produtos', async (req, res) => {
     }
 });
 
-// Rota para processar o carrinho e gerar o Pix
+// Rota para processar o carrinho e gerar a preferência/Pix via Mercado Pago
 app.post('/gerar-pix', async (req, res) => {
     try {
         const { local, itens } = req.body;
@@ -48,22 +52,43 @@ app.post('/gerar-pix', async (req, res) => {
             return res.status(400).json({ error: "O carrinho está vazio." });
         }
 
-        // Soma o total do carrinho enviado pelo front-end com segurança
-        let totalGeral = itens.reduce((acc, item) => acc + (item.preco * item.quantidade), 0);
+        // Mapeia os itens do carrinho para o formato aceito pelo Mercado Pago
+        const itemsForMP = itens.map(item => ({
+            title: `${item.quantidade}x ${item.nome} (${local})`,
+            unit_price: Number(item.preco),
+            quantity: Number(item.quantidade),
+            currency_id: 'BRL'
+        }));
 
-        console.log(`Processando pedido Pix | Local: ${local} | Total: R$ ${totalGeral.toFixed(2)}`);
+        // Cria a preferência de pagamento no Mercado Pago
+        const preference = new Preference(client);
+        const result = await preference.create({
+            body: {
+                items: itemsForMP,
+                payment_methods: {
+                    excluded_payment_types: [
+                        { id: "credit_card" },
+                        { id: "ticket" }
+                    ],
+                    installments: 1
+                },
+                statement_descriptor: "PANFORTE"
+            }
+        });
 
-        // Aqui você insere a chamada para a API do Mercado Pago utilizando suas credenciais
-        // Retornamos o sucesso para o front-end
+        console.log(`Preferência gerada para o ponto: ${local} | ID: ${result.id}`);
+
+        // Retorna o link de inicialização/pagamento para o front-end
         res.json({
             sucesso: true,
-            total: totalGeral,
-            mensagem: "Pedido recebido e pronto para pagamento!"
+            id: result.id,
+            init_point: result.init_point, // Link para redirecionar ou abrir o pagamento
+            sandbox_init_point: result.sandbox_init_point
         });
 
     } catch (error) {
-        console.error("Erro ao gerar Pix:", error);
-        res.status(500).json({ error: "Erro interno ao gerar o pagamento: " + error.message });
+        console.error("Erro ao gerar Pix no Mercado Pago:", error);
+        res.status(500).json({ error: "Erro interno ao processar o pagamento: " + error.message });
     }
 });
 
