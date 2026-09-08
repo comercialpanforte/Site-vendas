@@ -1,6 +1,3 @@
-Aqui está o código completo do seu index.html já atualizado com a nova área de suporte e o link direto para o WhatsApp de atendimento:
-
-HTML
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -332,6 +329,7 @@ HTML
             
             <div id="form-fiscal" class="area-fiscal">
                 <p style="font-size: 11px; color: #4a5568; margin: 0 0 6px 0;">Informe seus dados para envio posterior da NF:</p>
+                <input type="text" id="fiscal-nome" placeholder="Nome Completo">
                 <input type="text" id="fiscal-cpf" placeholder="CPF (somente números)">
                 <input type="email" id="fiscal-email" placeholder="E-mail">
                 <input type="text" id="fiscal-whatsapp" placeholder="WhatsApp (com DDD)">
@@ -566,11 +564,12 @@ HTML
         }
 
         async function salvarDadosFiscais() {
+            const nome = document.getElementById('fiscal-nome').value.trim();
             const cpf = document.getElementById('fiscal-cpf').value.trim();
             const email = document.getElementById('fiscal-email').value.trim();
             const whatsapp = document.getElementById('fiscal-whatsapp').value.trim();
 
-            if (!cpf && !email && !whatsapp) {
+            if (!nome && !cpf && !email && !whatsapp) {
                 alert("Preencha pelo menos um dos campos para envio da nota.");
                 return;
             }
@@ -581,6 +580,7 @@ HTML
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         payment_id: paymentIdAtual,
+                        nome: nome,
                         cpf: cpf,
                         email: email,
                         whatsapp: whatsapp
@@ -589,7 +589,7 @@ HTML
 
                 const dados = await resposta.json();
 
-                if (resposta.ok && dados.sucesso) {
+:                if (resposta.ok && dados.sucesso) {
                     alert("Dados fiscais salvos com sucesso! Obrigado.");
                     document.getElementById('form-fiscal').style.display = 'none';
                 } else {
