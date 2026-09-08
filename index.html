@@ -238,6 +238,37 @@
         }
         .btn-copiar:hover { background-color: #2b6cb0; }
 
+        .area-fiscal {
+            display: none;
+            margin-top: 12px;
+            text-align: left;
+            border-top: 1px dashed #cbd5e0;
+            padding-top: 10px;
+        }
+        .btn-toggle-fiscal {
+            background-color: #4a5568;
+            color: white;
+            border: none;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .btn-toggle-fiscal:hover { background-color: #2d3748; }
+        .btn-salvar-fiscal {
+            background-color: #2b6cb0;
+            color: white;
+            border: none;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn-salvar-fiscal:hover { background-color: #2c5282; }
+
         .footer-assinatura {
             margin-top: 12px;
             font-size: 11px;
@@ -292,12 +323,23 @@
             <p style="font-size: 12px; font-weight: bold; color: #2d3748; margin: 0 0 6px 0;">Escaneie o QR Code abaixo:</p>
             <img id="img-qr-code" class="qrcode-img" src="" alt="QR Code Pix">
             <button class="btn-copiar" onclick="copiarPix()">Copiar Código Pix</button>
+            
+            <!-- Botão e Formulário Opcional para Nota Fiscal -->
+            <button class="btn-toggle-fiscal" onclick="toggleFormularioFiscal()">Deseja CPF na Nota / Nota Fiscal?</button>
+            
+            <div id="form-fiscal" class="area-fiscal">
+                <p style="font-size: 11px; color: #4a5568; margin: 0 0 6px 0;">Informe seus dados para envio posterior da NF:</p>
+                <input type="text" id="fiscal-cpf" placeholder="CPF (somente números)">
+                <input type="email" id="fiscal-email" placeholder="E-mail">
+                <input type="text" id="fiscal-whatsapp" placeholder="WhatsApp (com DDD)">
+                <button class="btn-salvar-fiscal" onclick="salvarDadosFiscais()">Salvar Dados Fiscais</button>
+            </div>
         </div>
 
         <p style="font-size: 11px; color: #718096; margin-top: 6px;">💡 Pegue seu produto no expositor, pague via PIX e bom apetite!</p>
 
         <div class="footer-assinatura">
-            Autoatendimento by <strong>Panforte</strong> - Versão 1.23
+            Autoatendimento by <strong>Panforte</strong> - Versão 1.28
         </div>
     </div>
 
@@ -305,6 +347,7 @@
         let produtosDisponiveis = [];
         let carrinho = [];
         let codigoCopiaECola = "";
+        let paymentIdAtual = null; // Armazena o ID da venda gerada
 
         const urlParams = new URLSearchParams(window.location.search);
         const local = urlParams.get('local') || 'Geral';
@@ -312,7 +355,6 @@
 
         async function carregarProdutos() {
             try {
-                // Passa o local na URL para o backend filtrar o estoque específico
                 const resposta = await fetch(`https://site-vendas-cu7g.onrender.com/produtos?local=${encodeURIComponent(local)}`);
                 produtosDisponiveis = await resposta.json();
 
@@ -360,7 +402,6 @@
                 img.src = prod.imagem || 'HighProtein.jpg';
                 img.style.opacity = "1";
 
-                // Se o estoque for 0, bloqueia o botão de adicionar
                 if (prod.estoque <= 0) {
                     btnAdicionar.disabled = true;
                     btnAdicionar.innerText = "Indisponível (Esgotado)";
@@ -479,6 +520,7 @@
 
                 if (resposta.ok && dados.sucesso && dados.qr_code_base64) {
                     codigoCopiaECola = dados.qr_code;
+                    paymentIdAtual = dados.id; // Salva o ID da venda
 
                     document.getElementById('img-qr-code').src = `data:image/png;base64,${dados.qr_code_base64}`;
                     document.getElementById('area-qrcode').style.display = 'block';
@@ -508,6 +550,47 @@
                 console.error("Erro ao copiar: ", err);
                 alert("Não foi possível copiar automaticamente. Selecione o código manualmente.");
             });
+        }
+
+        function toggleFormularioFiscal() {
+            const form = document.getElementById('form-fiscal');
+            form.style.display = form.style.display === 'block' ? 'none' : 'block';
+        }
+
+        async function salvarDadosFiscais() {
+            const cpf = document.getElementById('fiscal-cpf').value.trim();
+            const email = document.getElementById('fiscal-email').value.trim();
+            const whatsapp = document.getElementById('fiscal-whatsapp').value.trim();
+
+            if (!cpf && !email && !whatsapp) {
+                alert("Preencha pelo menos um dos campos para envio da nota.");
+                return;
+            }
+
+            try {
+                const resposta = await fetch('https://site-vendas-cu7g.onrender.com/salvar-dados-fiscal', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        payment_id: paymentIdAtual,
+                        cpf: cpf,
+                        email: email,
+                        whatsapp: whatsapp
+                    })
+                });
+
+                const dados = await resposta.json();
+
+                if (resposta.ok && dados.sucesso) {
+                    alert("Dados fiscais salvos com sucesso! Obrigado.");
+                    document.getElementById('form-fiscal').style.display = 'none';
+                } else {
+                    alert("Erro ao salvar: " + (dados.error || "Tente novamente."));
+                }
+            } catch (erro) {
+                console.error("Erro ao enviar dados fiscais:", erro);
+                alert("Erro de conexão ao salvar os dados fiscais.");
+            }
         }
 
         carregarProdutos();
