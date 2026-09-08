@@ -124,20 +124,24 @@ app.post('/gerar-pix', async (req, res) => {
 
         const sheets = await getGoogleSheetsClient();
 
+        // Registra a venda deixando as colunas de dados fiscais (I, J, K) vazias inicialmente
         await sheets.spreadsheets.values.append({
             spreadsheetId: SPREADSHEET_ID,
-            range: 'Vendas!A:H',
+            range: 'Vendas!A:K',
             valueInputOption: 'USER_ENTERED',
             requestBody: {
                 values: [[
-                    dataHoraAtual,
-                    paymentId,
-                    paymentId,
-                    localAtual,
-                    resumoItens,
-                    valorTotal.toFixed(2),
-                    'Pendente',
-                    'Pendente'
+                    dataHoraAtual,         // A: data_hora
+                    paymentId,             // B: venda_id
+                    paymentId,             // C: payment_id
+                    localAtual,            // D: local_id
+                    resumoItens,           // E: itens_vendidos
+                    valorTotal.toFixed(2), // F: valor_total
+                    'Pendente',            // G: status
+                    'Pendente',            // H: Estoque Atualizado
+                    '',                    // I: email (preenchido depois, se solicitado)
+                    '',                    // J: whatsapp (preenchido depois, se solicitado)
+                    ''                     // K: cpf (preenchido depois, se solicitado)
                 ]]
             }
         });
@@ -157,6 +161,61 @@ app.post('/gerar-pix', async (req, res) => {
     }
 });
 
+// Nova Rota para salvar os dados fiscais (CPF, E-mail e WhatsApp) solicitados pelo cliente
+app.post('/salvar-dados-fiscal', async (req, res) => {
+    try {
+        const { payment_id, email, whatsapp, cpf } = req.body;
+
+        if (!payment_id) {
+            return res.status(400).json({ error: "ID de pagamento não informado." });
+        }
+
+        const sheets = await getGoogleSheetsClient();
+
+        // Busca as vendas para localizar a linha correspondente ao pagamento
+        const responseVendas = await sheets.spreadsheets.values.get({
+            spreadsheetId: SPREADSHEET_ID,
+            range: 'Vendas!A2:K500'
+        });
+        const rowsVendas = responseVendas.data.values || [];
+
+        let vendaIndex = -1;
+        for (let i = 0; i < rowsVendas.length; i++) {
+            if (String(rowsVendas[i][2]) === String(payment_id)) {
+                vendaIndex = i;
+                break;
+            }
+        }
+
+        if (vendaIndex === -1) {
+            return res.status(404).json({ error: "Venda não encontrada na planilha." });
+        }
+
+        const rowIndex = vendaIndex + 2; // Linha real na planilha (considerando cabeçalho)
+
+        // Atualiza as colunas I (email), J (whatsapp) e K (cpf) daquela linha
+        await sheets.spreadsheets.values.update({
+            spreadsheetId: SPREADSHEET_ID,
+            range: `Vendas!I${rowIndex}:K${rowIndex}`,
+            valueInputOption: 'USER_ENTERED',
+            requestBody: {
+                values: [[
+                    email || '',
+                    whatsapp || '',
+                    cpf || ''
+                ]]
+            }
+        });
+
+        console.log(`Dados fiscais salvos com sucesso para a venda ${payment_id}`);
+        res.json({ sucesso: true, mensagem: "Dados fiscais salvos com sucesso!" });
+
+    } catch (error) {
+        console.error("Erro ao salvar dados fiscais:", error);
+        res.status(500).json({ error: "Erro interno ao salvar dados fiscais: " + error.message });
+    }
+});
+
 // Função interna reutilizável para processar a aprovação e a baixa no estoque
 async function processarAprovacaoPagamento(paymentId) {
     const accessToken = process.env.MP_ACCESS_TOKEN;
@@ -173,7 +232,7 @@ async function processarAprovacaoPagamento(paymentId) {
 
     const responseVendas = await sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
-        range: 'Vendas!A2:H500'
+        range: 'Vendas!A2:K500'
     });
     const rowsVendas = responseVendas.data.values || [];
 
@@ -188,7 +247,7 @@ async function processarAprovacaoPagamento(paymentId) {
         }
     }
 
-    if (!vendaIndex === -1 || !vendaRow) {
+    if (vendaIndex === -1 || !vendaRow) {
         return { processado: false, motivo: 'Venda não localizada na planilha' };
     }
 
@@ -248,13 +307,12 @@ async function processarAprovacaoPagamento(paymentId) {
     return { processado: true };
 }
 
-// 1. Rota de Webhook que recebe os avisos automáticos do Mercado Pago
+// Rota de Webhook que recebe os avisos automáticos do Mercado Pago
 app.post('/webhook', async (req, res) => {
     try {
         const body = req.body;
         console.log("Webhook recebido do MP:", body);
 
-        // O Mercado Pago envia notificações de diferentes tipos
         if (body.type === 'payment' || body.action === 'payment.created' || body.action === 'payment.updated') {
             const paymentId = body.data?.id || body.id;
             if (paymentId) {
@@ -262,7 +320,6 @@ app.post('/webhook', async (req, res) => {
             }
         }
 
-        // Sempre responder 200 rapidamente para o Mercado Pago não reenviar o webhook
         res.status(200).send('OK');
     } catch (error) {
         console.error("Erro no processamento do Webhook:", error);
@@ -270,13 +327,13 @@ app.post('/webhook', async (req, res) => {
     }
 });
 
-// 2. Rota de segurança manual (caso queira forçar a varredura)
+// Rota de segurança manual
 app.get('/verificar-vendas', async (req, res) => {
     try {
         const sheets = await getGoogleSheetsClient();
         const responseVendas = await sheets.spreadsheets.values.get({
             spreadsheetId: SPREADSHEET_ID,
-            range: 'Vendas!A2:H500'
+            range: 'Vendas!A2:K500'
         });
         const rowsVendas = responseVendas.data.values || [];
         let totalProcessados = 0;
