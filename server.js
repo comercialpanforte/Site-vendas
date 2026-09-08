@@ -124,10 +124,10 @@ app.post('/gerar-pix', async (req, res) => {
 
         const sheets = await getGoogleSheetsClient();
 
-        // Registra a venda deixando as colunas de dados fiscais (I, J, K) vazias inicialmente
+        // Registra a venda deixando as colunas de dados fiscais (I, J, K, L) vazias inicialmente
         await sheets.spreadsheets.values.append({
             spreadsheetId: SPREADSHEET_ID,
-            range: 'Vendas!A:K',
+            range: 'Vendas!A:L',
             valueInputOption: 'USER_ENTERED',
             requestBody: {
                 values: [[
@@ -139,9 +139,10 @@ app.post('/gerar-pix', async (req, res) => {
                     valorTotal.toFixed(2), // F: valor_total
                     'Pendente',            // G: status
                     'Pendente',            // H: Estoque Atualizado
-                    '',                    // I: email (preenchido depois, se solicitado)
-                    '',                    // J: whatsapp (preenchido depois, se solicitado)
-                    ''                     // K: cpf (preenchido depois, se solicitado)
+                    '',                    // I: email
+                    '',                    // J: whatsapp
+                    '',                    // K: cpf
+                    ''                     // L: nome
                 ]]
             }
         });
@@ -161,10 +162,10 @@ app.post('/gerar-pix', async (req, res) => {
     }
 });
 
-// Nova Rota para salvar os dados fiscais (CPF, E-mail e WhatsApp) solicitados pelo cliente
+// Nova Rota para salvar os dados fiscais (Nome, CPF, E-mail e WhatsApp) solicitados pelo cliente
 app.post('/salvar-dados-fiscal', async (req, res) => {
     try {
-        const { payment_id, email, whatsapp, cpf } = req.body;
+        const { payment_id, nome, email, whatsapp, cpf } = req.body;
 
         if (!payment_id) {
             return res.status(400).json({ error: "ID de pagamento não informado." });
@@ -175,7 +176,7 @@ app.post('/salvar-dados-fiscal', async (req, res) => {
         // Busca as vendas para localizar a linha correspondente ao pagamento
         const responseVendas = await sheets.spreadsheets.values.get({
             spreadsheetId: SPREADSHEET_ID,
-            range: 'Vendas!A2:K500'
+            range: 'Vendas!A2:L500'
         });
         const rowsVendas = responseVendas.data.values || [];
 
@@ -193,16 +194,17 @@ app.post('/salvar-dados-fiscal', async (req, res) => {
 
         const rowIndex = vendaIndex + 2; // Linha real na planilha (considerando cabeçalho)
 
-        // Atualiza as colunas I (email), J (whatsapp) e K (cpf) daquela linha
+        // Atualiza as colunas I (email), J (whatsapp), K (cpf) e L (nome) daquela linha
         await sheets.spreadsheets.values.update({
             spreadsheetId: SPREADSHEET_ID,
-            range: `Vendas!I${rowIndex}:K${rowIndex}`,
+            range: `Vendas!I${rowIndex}:L${rowIndex}`,
             valueInputOption: 'USER_ENTERED',
             requestBody: {
                 values: [[
                     email || '',
                     whatsapp || '',
-                    cpf || ''
+                    cpf || '',
+                    nome || ''
                 ]]
             }
         });
@@ -232,7 +234,7 @@ async function processarAprovacaoPagamento(paymentId) {
 
     const responseVendas = await sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
-        range: 'Vendas!A2:K500'
+        range: 'Vendas!A2:L500'
     });
     const rowsVendas = responseVendas.data.values || [];
 
@@ -333,7 +335,7 @@ app.get('/verificar-vendas', async (req, res) => {
         const sheets = await getGoogleSheetsClient();
         const responseVendas = await sheets.spreadsheets.values.get({
             spreadsheetId: SPREADSHEET_ID,
-            range: 'Vendas!A2:K500'
+            range: 'Vendas!A2:L500'
         });
         const rowsVendas = responseVendas.data.values || [];
         let totalProcessados = 0;
