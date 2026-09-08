@@ -1,3 +1,6 @@
+Aqui está o código completo do seu index.html já atualizado com a nova área de suporte e o link direto para o WhatsApp de atendimento:
+
+HTML
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -338,6 +341,11 @@
 
         <p style="font-size: 11px; color: #718096; margin-top: 6px;">💡 Pegue seu produto no expositor, pague via PIX e bom apetite!</p>
 
+        <!-- Informação de Suporte -->
+        <div style="margin-top: 10px; font-size: 11px; color: #4a5568; background-color: #f8fafc; padding: 6px; border-radius: 6px; border: 1px solid #e2e8f0;">
+            🛠️ Problemas ou dúvidas? Nos chame: <a href="https://wa.me/554231410042" target="_blank" style="color: #3182ce; font-weight: bold; text-decoration: none;">(42) 3141-0042</a>
+        </div>
+
         <div class="footer-assinatura">
             Autoatendimento by <strong>Panforte</strong> - Versão 1.28
         </div>
@@ -347,7 +355,7 @@
         let produtosDisponiveis = [];
         let carrinho = [];
         let codigoCopiaECola = "";
-        let paymentIdAtual = null; // Armazena o ID da venda gerada
+        let paymentIdAtual = null;
 
         const urlParams = new URLSearchParams(window.location.search);
         const local = urlParams.get('local') || 'Geral';
@@ -520,7 +528,7 @@
 
                 if (resposta.ok && dados.sucesso && dados.qr_code_base64) {
                     codigoCopiaECola = dados.qr_code;
-                    paymentIdAtual = dados.id; // Salva o ID da venda
+                    paymentIdAtual = dados.id;
 
                     document.getElementById('img-qr-code').src = `data:image/png;base64,${dados.qr_code_base64}`;
                     document.getElementById('area-qrcode').style.display = 'block';
