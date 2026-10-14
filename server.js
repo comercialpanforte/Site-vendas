@@ -34,29 +34,36 @@ app.get('/produtos', async (req, res) => {
         rowsEstoque.forEach(row => {
             const localId = String(row[0]).trim();
             const prodId = String(row[1]).trim();
-            const qtd = parseInt(row[2]) || 0;
+            const qtd = parseInt(row[2]);
 
             if (localId.toLowerCase() === localAtual.toLowerCase()) {
-                estoquePorLocal[prodId] = qtd;
+                estoquePorLocal[prodId] = isNaN(qtd) ? 0 : qtd;
             }
         });
 
-        const produtos = rowsProdutos.map(row => {
-            const id = String(row[0]).trim();
-            const nome = row[1];
-            const preco = parseFloat(String(row[2]).replace(',', '.'));
-            const imagem = row[3] || 'HighProtein.jpg';
-            
-            const quantidadeEstoque = estoquePorLocal[id] !== undefined ? estoquePorLocal[id] : 0;
+        // Retorna APENAS os produtos cadastrados para o local específico (ou todos se for 'Geral')
+        const produtos = rowsProdutos
+            .filter(row => {
+                const id = String(row[0]).trim();
+                if (localAtual.toLowerCase() === 'geral') return true;
+                return Object.prototype.hasOwnProperty.call(estoquePorLocal, id);
+            })
+            .map(row => {
+                const id = String(row[0]).trim();
+                const nome = row[1];
+                const preco = parseFloat(String(row[2]).replace(',', '.'));
+                const imagem = row[3] || 'HighProtein.jpg';
+                
+                const quantidadeEstoque = estoquePorLocal[id] !== undefined ? estoquePorLocal[id] : 0;
 
-            return {
-                id,
-                nome,
-                preco,
-                imagem,
-                estoque: quantidadeEstoque
-            };
-        });
+                return {
+                    id,
+                    nome,
+                    preco,
+                    imagem,
+                    estoque: quantidadeEstoque
+                };
+            });
 
         res.json(produtos);
     } catch (error) {
@@ -162,7 +169,7 @@ app.post('/gerar-pix', async (req, res) => {
     }
 });
 
-// Nova Rota para salvar os dados fiscais (Nome, CPF, E-mail e WhatsApp) solicitados pelo cliente
+// Nova Rota para salvar os dados fiscais solicitados pelo cliente
 app.post('/salvar-dados-fiscal', async (req, res) => {
     try {
         const { payment_id, nome, email, whatsapp, cpf } = req.body;
@@ -173,7 +180,6 @@ app.post('/salvar-dados-fiscal', async (req, res) => {
 
         const sheets = await getGoogleSheetsClient();
 
-        // Busca as vendas para localizar a linha correspondente ao pagamento
         const responseVendas = await sheets.spreadsheets.values.get({
             spreadsheetId: SPREADSHEET_ID,
             range: 'Vendas!A2:L500'
@@ -192,9 +198,8 @@ app.post('/salvar-dados-fiscal', async (req, res) => {
             return res.status(404).json({ error: "Venda não encontrada na planilha." });
         }
 
-        const rowIndex = vendaIndex + 2; // Linha real na planilha (considerando cabeçalho)
+        const rowIndex = vendaIndex + 2;
 
-        // Atualiza as colunas I (email), J (whatsapp), K (cpf) e L (nome) daquela linha
         await sheets.spreadsheets.values.update({
             spreadsheetId: SPREADSHEET_ID,
             range: `Vendas!I${rowIndex}:L${rowIndex}`,
@@ -253,7 +258,6 @@ async function processarAprovacaoPagamento(paymentId) {
         return { processado: false, motivo: 'Venda não localizada na planilha' };
     }
 
-    // Se o estoque já foi atualizado para esta venda, evita duplicidade
     if (vendaRow[7] === 'OK') {
         return { processado: true, motivo: 'Estoque já havia sido baixado anteriormente' };
     }
@@ -261,14 +265,13 @@ async function processarAprovacaoPagamento(paymentId) {
     const localId = vendaRow[3];
     const itensStr = vendaRow[4];
 
-    // Busca o estoque atual
     const responseEstoque = await sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
         range: 'Estoque!A2:C500'
     });
     const rowsEstoque = responseEstoque.data.values || [];
 
-    // Executa a baixa do estoque
+    // Executa a baixa do estoque (permitindo resultado negativo)
     const regexItem = /(\d+)x\s+([^(]+)\(ID:(\d+)\)/g;
     let match;
     while ((match = regexItem.exec(itensStr)) !== null) {
@@ -282,7 +285,8 @@ async function processarAprovacaoPagamento(paymentId) {
             const eQtdAtual = parseInt(eRow[2]) || 0;
 
             if (eLocal.toLowerCase() === localId.toLowerCase() && eProdId === prodId) {
-                const novaQtd = Math.max(0, eQtdAtual - qtdComprada);
+                // Subtração direta que permite estoque negativo para auditoria
+                const novaQtd = eQtdAtual - qtdComprada;
                 const eRowIndex = e + 2;
 
                 await sheets.spreadsheets.values.update({
@@ -309,7 +313,7 @@ async function processarAprovacaoPagamento(paymentId) {
     return { processado: true };
 }
 
-// Rota de Webhook que recebe os avisos automáticos do Mercado Pago
+// Rota de Webhook
 app.post('/webhook', async (req, res) => {
     try {
         const body = req.body;
@@ -329,7 +333,7 @@ app.post('/webhook', async (req, res) => {
     }
 });
 
-// Rota de segurança manual
+// Rota de verificação manual
 app.get('/verificar-vendas', async (req, res) => {
     try {
         const sheets = await getGoogleSheetsClient();
