@@ -324,7 +324,6 @@
             <img id="img-qr-code" class="qrcode-img" src="" alt="QR Code Pix">
             <button class="btn-copiar" onclick="copiarPix()">Copiar Código Pix</button>
             
-            <!-- Botão e Formulário Opcional para Nota Fiscal -->
             <button class="btn-toggle-fiscal" onclick="toggleFormularioFiscal()">Deseja CPF na Nota / Nota Fiscal?</button>
             
             <div id="form-fiscal" class="area-fiscal">
@@ -339,13 +338,12 @@
 
         <p style="font-size: 11px; color: #718096; margin-top: 6px;">💡 Pegue seu produto no expositor, pague via PIX e bom apetite!</p>
 
-        <!-- Informação de Suporte Profissional -->
         <div style="margin-top: 10px; font-size: 11px; color: #4a5568; background-color: #f8fafc; padding: 6px; border-radius: 6px; border: 1px solid #e2e8f0;">
             🛠️ Teve algum problema ou dúvida? Fale conosco através do nosso WhatsApp: <a href="https://wa.me/554231410042" target="_blank" style="color: #3182ce; font-weight: bold; text-decoration: none;">(42) 3141-0042</a>
         </div>
 
         <div class="footer-assinatura">
-            Autoatendimento by <strong>Panforte</strong> - Versão 1.29
+            Autoatendimento by <strong>Panforte</strong> - Versão 1.30
         </div>
     </div>
 
@@ -358,6 +356,17 @@
         const urlParams = new URLSearchParams(window.location.search);
         const local = urlParams.get('local') || 'Geral';
         document.getElementById('lbl-local').innerHTML = `📍 Ponto de venda: ${local}`;
+
+        // Função para formatar caixa alta em iniciais maiúsculas (Title Case)
+        function formatarNome(str) {
+            if (!str) return "";
+            return str.toLowerCase().split(' ').map((palavra, index) => {
+                if (index > 0 && ['de', 'da', 'do', 'com', 'e'].includes(palavra)) {
+                    return palavra;
+                }
+                return palavra.charAt(0).toUpperCase() + palavra.slice(1);
+            }).join(' ');
+        }
 
         async function carregarProdutos() {
             try {
@@ -376,9 +385,10 @@
                     const option = document.createElement('option');
                     option.value = index;
                     const precoFormatado = p.preco.toFixed(2).replace('.', ',');
+                    const nomeFormatado = formatarNome(p.nome);
                     
-                    // FORMATO LIMPO: Apenas o nome do produto e o preço
-                    option.text = `${p.nome} - R$ ${precoFormatado}`;
+                    // Exibição em formato limpo e compacto
+                    option.text = `${nomeFormatado} — R$ ${precoFormatado}`;
                     select.appendChild(option);
                 });
 
@@ -405,7 +415,6 @@
                 img.src = prod.imagem || 'HighProtein.jpg';
                 img.style.opacity = "1";
 
-                // Botão sempre ativo para permitir compra mesmo sem estoque registrado
                 btnAdicionar.disabled = false;
                 btnAdicionar.innerText = "Adicionar";
                 btnAdicionar.style.backgroundColor = "#ed8936";
@@ -430,6 +439,7 @@
             }
 
             const produtoSelecionado = produtosDisponiveis[indexSelect];
+            const nomeFormatado = formatarNome(produtoSelecionado.nome);
 
             const itemExistente = carrinho.find(item => item.id === produtoSelecionado.id);
 
@@ -438,7 +448,7 @@
             } else {
                 carrinho.push({
                     id: produtoSelecionado.id,
-                    nome: produtoSelecionado.nome,
+                    nome: nomeFormatado,
                     preco: produtoSelecionado.preco,
                     quantidade: quantidade
                 });
