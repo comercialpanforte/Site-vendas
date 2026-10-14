@@ -34,29 +34,36 @@ app.get('/produtos', async (req, res) => {
         rowsEstoque.forEach(row => {
             const localId = String(row[0]).trim();
             const prodId = String(row[1]).trim();
-            const qtd = parseInt(row[2]) || 0;
+            const qtd = parseInt(row[2]);
 
             if (localId.toLowerCase() === localAtual.toLowerCase()) {
-                estoquePorLocal[prodId] = qtd;
+                estoquePorLocal[prodId] = isNaN(qtd) ? 0 : qtd;
             }
         });
 
-        const produtos = rowsProdutos.map(row => {
-            const id = String(row[0]).trim();
-            const nome = row[1];
-            const preco = parseFloat(String(row[2]).replace(',', '.'));
-            const imagem = row[3] || 'HighProtein.jpg';
-            
-            const quantidadeEstoque = estoquePorLocal[id] !== undefined ? estoquePorLocal[id] : 0;
+        // Retorna APENAS os produtos cadastrados para o local na aba Estoque
+        const produtos = rowsProdutos
+            .filter(row => {
+                const id = String(row[0]).trim();
+                if (localAtual.toLowerCase() === 'geral') return true;
+                return Object.prototype.hasOwnProperty.call(estoquePorLocal, id);
+            })
+            .map(row => {
+                const id = String(row[0]).trim();
+                const nome = row[1];
+                const preco = parseFloat(String(row[2]).replace(',', '.'));
+                const imagem = row[3] || 'HighProtein.jpg';
+                
+                const quantidadeEstoque = estoquePorLocal[id] !== undefined ? estoquePorLocal[id] : 0;
 
-            return {
-                id,
-                nome,
-                preco,
-                imagem,
-                estoque: quantidadeEstoque
-            };
-        });
+                return {
+                    id,
+                    nome,
+                    preco,
+                    imagem,
+                    estoque: quantidadeEstoque
+                };
+            });
 
         res.json(produtos);
     } catch (error) {
@@ -268,7 +275,7 @@ async function processarAprovacaoPagamento(paymentId) {
     });
     const rowsEstoque = responseEstoque.data.values || [];
 
-    // Executa a baixa do estoque
+    // Executa a baixa do estoque (permite ficar negativo)
     const regexItem = /(\d+)x\s+([^(]+)\(ID:(\d+)\)/g;
     let match;
     while ((match = regexItem.exec(itensStr)) !== null) {
@@ -282,7 +289,7 @@ async function processarAprovacaoPagamento(paymentId) {
             const eQtdAtual = parseInt(eRow[2]) || 0;
 
             if (eLocal.toLowerCase() === localId.toLowerCase() && eProdId === prodId) {
-                const novaQtd = Math.max(0, eQtdAtual - qtdComprada);
+                const novaQtd = eQtdAtual - qtdComprada;
                 const eRowIndex = e + 2;
 
                 await sheets.spreadsheets.values.update({
