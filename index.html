@@ -3,183 +3,605 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panforte - Autoatendimento</title>
+    <title>Autoatendimento - Panforte</title>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f5f5f7;
-            color: #333333;
-            margin: 0;
-            padding: 20px;
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #edf2f7; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            margin: 0; 
+        }
+        .card { 
+            background-color: white; 
+            padding: 18px 22px; 
+            border-radius: 14px; 
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08); 
+            width: 100%; 
+            max-width: 380px; 
+            text-align: center; 
+            box-sizing: border-box;
+        }
+        .logo-container {
+            margin-bottom: 10px;
+            min-height: 40px;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            box-sizing: border-box;
         }
-        .card {
-            background: #ffffff;
-            border-radius: 16px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-            max-width: 420px;
-            width: 100%;
-            padding: 24px;
-            box-sizing: border-box;
+        .logo { 
+            max-width: 130px; 
+            max-height: 50px;
+            object-fit: contain;
         }
-        .header {
-            text-align: center;
-            margin-bottom: 24px;
+        .badge { 
+            background-color: #e6fffa; 
+            color: #2c7a7b; 
+            padding: 4px 10px; 
+            border-radius: 16px; 
+            font-size: 11px; 
+            font-weight: 600; 
+            display: inline-block; 
+            margin-bottom: 12px; 
         }
-        .header img {
-            max-width: 130px;
-            height: auto;
-            margin-bottom: 12px;
-        }
-        .header h1 {
-            font-size: 20px;
-            margin: 0 0 8px 0;
-            color: #1d1d1f;
-        }
-        .subtitulo {
-            font-size: 14px;
-            color: #6e6e73;
-            line-height: 1.4;
-            margin: 0;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            font-weight: 600;
-            font-size: 14px;
-            margin-bottom: 8px;
-            color: #1d1d1f;
+        select, input, button { 
+            width: 100%; 
+            padding: 9px; 
+            margin: 6px 0; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 6px; 
+            box-sizing: border-box; 
+            font-size: 13px;
         }
         select {
-            width: 100%;
-            padding: 14px;
-            font-size: 15px;
-            border: 1px solid #d2d2d7;
-            border-radius: 10px;
-            background-color: #fbfbfd;
-            appearance: none;
-            -webkit-appearance: none;
-            outline: none;
-            box-sizing: border-box;
-            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%236e6e73%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.4-12.8z%22%2F%3E%3C%2Fsvg%3E");
-            background-repeat: no-repeat;
-            background-position: right 14px top 50%;
-            background-size: 12px auto;
+            background-color: #f8fafc;
         }
-        select:focus {
-            border-color: #0071e3;
-            box-shadow: 0 0 0 3px rgba(0,113,227,0.15);
+        .produto-vitrine {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 8px;
+            margin-bottom: 10px;
         }
-        .btn-pagar {
-            width: 100%;
-            background-color: #27ae60;
-            color: #ffffff;
-            border: none;
-            padding: 16px;
-            font-size: 16px;
-            font-weight: 600;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: background 0.2s;
+        .produto-img {
+            width: 100%; 
+            height: 110px; 
+            object-fit: contain; 
         }
-        .btn-pagar:hover {
-            background-color: #219653;
+
+        .block-qtd-add {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 12px;
+            background-color: #f8fafc;
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
         }
-        .footer-info {
-            margin-top: 24px;
+        .block-qtd-add label {
+            font-size: 13px;
+            font-weight: bold;
+            margin: 0;
+            color: #4a5568;
+        }
+        .block-qtd-add input {
+            width: 60px;
             text-align: center;
+            margin: 0;
+            font-weight: bold;
+            font-size: 13px;
+            padding: 6px;
+        }
+        .btn-add { 
+            background-color: #ed8936; 
+            color: white; 
+            border: none; 
+            font-weight: bold; 
+            cursor: pointer; 
+            flex-grow: 1; 
+            margin: 0;
+            padding: 7px;
+            transition: background-color 0.2s;
+        }
+        .btn-add:hover { background-color: #dd6b20; }
+        .btn-add:disabled { background-color: #cbd5e0; cursor: not-allowed; }
+
+        .btn-pix { 
+            background-color: #48bb78; 
+            color: white; 
+            border: none; 
+            font-weight: bold; 
+            cursor: pointer; 
+            font-size: 14px; 
+            margin-top: 10px;
+            padding: 11px;
+            transition: all 0.2s;
+            box-shadow: 0 3px 5px rgba(72, 187, 120, 0.2);
+        }
+        .btn-pix:hover { 
+            background-color: #38a169;
+            transform: translateY(-1px);
+        }
+        .btn-pix:disabled {
+            background-color: #cbd5e0;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .carrinho-section {
+            text-align: left;
+            margin-bottom: 10px;
+        }
+        .carrinho-header {
+            font-size: 13px; 
+            font-weight: 600; 
+            margin: 0 0 6px 0; 
+            color: #4a5568;
+        }
+        .carrinho-lista { 
+            max-height: 100px; 
+            overflow-y: auto; 
+            border: 1px solid #e2e8f0; 
+            padding: 6px; 
+            border-radius: 6px; 
+            background-color: #f8fafc;
+            min-height: 40px; 
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .carrinho-vazio {
+            color: #a0aec0; 
+            font-size: 12px; 
+            font-style: italic;
+            text-align: center;
+            margin: auto; 
+        }
+
+        .item-carrinho { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            background-color: white;
+            border-radius: 4px;
+            padding: 5px 8px; 
+            border: 1px solid #edf2f7;
+        }
+        .item-carrinho .nome-item {
+            flex: 1;
+            text-align: left;
             font-size: 12px;
-            color: #86868b;
-            line-height: 1.5;
+            color: #2d3748;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding-right: 8px;
+        }
+        .item-carrinho .preco-item {
+            font-size: 12px;
+            font-weight: bold;
+            color: #2d3748;
+            white-space: nowrap;
+        }
+        .btn-remover { 
+            background-color: #f56565; 
+            color: white; 
+            border: none; 
+            width: 18px; 
+            height: 18px; 
+            border-radius: 50%; 
+            cursor: pointer; 
+            font-size: 9px; 
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-left: 6px;
+        }
+        .btn-remover:hover { background-color: #e53e3e; }
+
+        .total-label {
+            font-size: 13px; color: #4a5568; margin: 4px 0 0 0;
+        }
+        .total-valor {
+            margin: 0 0 10px 0; font-size: 22px; font-weight: 900; color: #1a202c;
+        }
+
+        #area-qrcode {
+            display: none;
+            margin-top: 15px;
+            padding: 12px;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+        .qrcode-img {
+            width: 160px;
+            height: 160px;
+            object-fit: contain;
+            margin-bottom: 8px;
+        }
+        .btn-copiar {
+            background-color: #3182ce;
+            color: white;
+            border: none;
+            padding: 8px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 6px;
+        }
+        .btn-copiar:hover { background-color: #2b6cb0; }
+
+        .area-fiscal {
+            display: none;
+            margin-top: 12px;
+            text-align: left;
+            border-top: 1px dashed #cbd5e0;
+            padding-top: 10px;
+        }
+        .btn-toggle-fiscal {
+            background-color: #4a5568;
+            color: white;
+            border: none;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .btn-toggle-fiscal:hover { background-color: #2d3748; }
+        .btn-salvar-fiscal {
+            background-color: #2b6cb0;
+            color: white;
+            border: none;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn-salvar-fiscal:hover { background-color: #2c5282; }
+
+        .footer-assinatura {
+            margin-top: 12px;
+            font-size: 11px;
+            color: #718096; 
+            border-top: 1px solid #e2e8f0;
+            padding-top: 10px;
+        }
+        .footer-assinatura strong {
+            color: #5c4033; 
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
+
     <div class="card">
-        <div class="header">
-            <img src="logo.png" alt="Panforte" onerror="this.style.display='none'">
-            <h1>Autoatendimento Panforte</h1>
-            <p class="subtitulo">💡 Pegue seu produto no expositor, pague via PIX e bom apetite!</p>
+        <div class="logo-container">
+            <img src="logo.png" alt="Panforte" class="logo" onerror="this.onerror=null; this.src='https://via.placeholder.com/130x40?text=Panforte';">
+        </div>
+        
+        <div class="badge" id="lbl-local">📍 Ponto de venda: Carregando...</div>
+
+        <h3 style="margin: 0 0 8px 0; font-size: 14px; color: #2d3748;">Selecione o Produto:</h3>
+        
+        <select id="select-produtos" onchange="atualizarInterfaceProduto()">
+            <option value="">Carregando produtos...</option>
+        </select>
+
+        <div class="produto-vitrine">
+            <img id="img-produto" src="HighProtein.jpg" alt="Produto" class="produto-img">
         </div>
 
-        <form id="form-pagamento">
-            <div class="form-group">
-                <label for="produto">Selecione o produto:</label>
-                <select id="produto" name="produto" required>
-                    <option value="">Carregando produtos...</option>
-                </select>
+        <div class="block-qtd-add">
+            <label for="input-qtd">Qtd:</label>
+            <input type="number" id="input-qtd" value="1" min="1">
+            <button id="btn-adicionar" class="btn-add" onclick="adicionarAoCarrinho()">Adicionar</button>
+        </div>
+
+        <div class="carrinho-section">
+            <h4 class="carrinho-header">Seu Carrinho:</h4>
+            <div id="lista-carrinho" class="carrinho-lista">
+                <span class="carrinho-vazio">Carrinho vazio</span>
             </div>
+        </div>
 
-            <button type="submit" class="btn-pagar">Avançar para Pagamento PIX</button>
-        </form>
+        <p class="total-label">Total a pagar:</p>
+        <h2 class="total-valor">R$ <span id="valor-total">0,00</span></h2>
 
-        <div class="footer-info">
-            <p>🛠️ Teve algum problema? Fale conosco pelo WhatsApp:<br><strong>(42) 3141-0042</strong></p>
-            <p style="margin-top: 8px;">Panforte — Sabor & Qualidade</p>
+        <button class="btn-pix" onclick="gerarPix()">Gerar PIX para Pagamento</button>
+        
+        <div id="area-qrcode">
+            <p style="font-size: 12px; font-weight: bold; color: #2d3748; margin: 0 0 6px 0;">Escaneie o QR Code abaixo:</p>
+            <img id="img-qr-code" class="qrcode-img" src="" alt="QR Code Pix">
+            <button class="btn-copiar" onclick="copiarPix()">Copiar Código Pix</button>
+            
+            <!-- Botão e Formulário Opcional para Nota Fiscal -->
+            <button class="btn-toggle-fiscal" onclick="toggleFormularioFiscal()">Deseja CPF na Nota / Nota Fiscal?</button>
+            
+            <div id="form-fiscal" class="area-fiscal">
+                <p style="font-size: 11px; color: #4a5568; margin: 0 0 6px 0;">Informe seus dados para envio posterior da NF:</p>
+                <input type="text" id="fiscal-nome" placeholder="Nome Completo">
+                <input type="text" id="fiscal-cpf" placeholder="CPF (somente números)">
+                <input type="email" id="fiscal-email" placeholder="E-mail">
+                <input type="text" id="fiscal-whatsapp" placeholder="WhatsApp (com DDD)">
+                <button class="btn-salvar-fiscal" onclick="salvarDadosFiscais()">Salvar Dados Fiscais</button>
+            </div>
+        </div>
+
+        <p style="font-size: 11px; color: #718096; margin-top: 6px;">💡 Pegue seu produto no expositor, pague via PIX e bom apetite!</p>
+
+        <!-- Informação de Suporte Profissional -->
+        <div style="margin-top: 10px; font-size: 11px; color: #4a5568; background-color: #f8fafc; padding: 6px; border-radius: 6px; border: 1px solid #e2e8f0;">
+            🛠️ Teve algum problema ou dúvida? Fale conosco através do nosso WhatsApp: <a href="https://wa.me/554231410042" target="_blank" style="color: #3182ce; font-weight: bold; text-decoration: none;">(42) 3141-0042</a>
+        </div>
+
+        <div class="footer-assinatura">
+            Autoatendimento by <strong>Panforte</strong> - Versão 1.28
         </div>
     </div>
 
     <script>
-        // Captura o parâmetro 'local' da URL (ex: ?local=Red_Wolf)
-        const urlParams = new URLSearchParams(window.location.search);
-        const localURL = urlParams.get('local');
+        let produtosDisponiveis = [];
+        let carrinho = [];
+        let codigoCopiaECola = "";
+        let paymentIdAtual = null;
 
-        const selectProduto = document.getElementById('produto');
+        const urlParams = new URLSearchParams(window.location.search);
+        const local = urlParams.get('local') || 'Geral';
+        document.getElementById('lbl-local').innerHTML = `📍 Ponto de venda: ${local}`;
 
         async function carregarProdutos() {
-            if (!localURL) {
-                selectProduto.innerHTML = '<option value="">Ponto de venda não informado na URL</option>';
+            try {
+                const resposta = await fetch(`https://site-vendas-cu7g.onrender.com/produtos?local=${encodeURIComponent(local)}`);
+                produtosDisponiveis = await resposta.json();
+
+                const select = document.getElementById('select-produtos');
+                select.innerHTML = '';
+
+                const defaultOption = document.createElement('option');
+                defaultOption.text = "--- Selecione seu produto ---";
+                defaultOption.value = "";
+                select.appendChild(defaultOption);
+
+                produtosDisponiveis.forEach((p, index) => {
+                    const option = document.createElement('option');
+                    option.value = index;
+                    const precoFormatado = p.preco.toFixed(2).replace('.', ',');
+                    
+                    if (p.estoque <= 0) {
+                        option.text = `${p.nome} - R$ ${precoFormatado} (ESGOTADO)`;
+                    } else {
+                        option.text = `${p.nome} - R$ ${precoFormatado} (Estoque: ${p.estoque})`;
+                    }
+                    select.appendChild(option);
+                });
+
+                if (produtosDisponiveis.length > 0) {
+                    select.selectedIndex = 0;
+                }
+                
+                atualizarInterfaceProduto();
+            } catch (erro) {
+                console.error("Erro ao carregar produtos:", erro);
+                const select = document.getElementById('select-produtos');
+                select.innerHTML = '<option value="">Erro ao conectar com o servidor</option>';
+            }
+        }
+
+        function atualizarInterfaceProduto() {
+            const select = document.getElementById('select-produtos');
+            const img = document.getElementById('img-produto');
+            const btnAdicionar = document.getElementById('btn-adicionar');
+            const index = select.value;
+            
+            if (index !== "" && produtosDisponiveis[index]) {
+                const prod = produtosDisponiveis[index];
+                img.src = prod.imagem || 'HighProtein.jpg';
+                img.style.opacity = "1";
+
+                if (prod.estoque <= 0) {
+                    btnAdicionar.disabled = true;
+                    btnAdicionar.innerText = "Indisponível (Esgotado)";
+                    btnAdicionar.style.backgroundColor = "#cbd5e0";
+                } else {
+                    btnAdicionar.disabled = false;
+                    btnAdicionar.innerText = "Adicionar";
+                    btnAdicionar.style.backgroundColor = "#ed8936";
+                }
+            } else {
+                img.src = 'HighProtein.jpg';
+                img.style.opacity = "0.3";
+                btnAdicionar.disabled = false;
+                btnAdicionar.innerText = "Adicionar";
+                btnAdicionar.style.backgroundColor = "#ed8936";
+            }
+        }
+
+        function adicionarAoCarrinho() {
+            const select = document.getElementById('select-produtos');
+            const indexSelect = select.value;
+            const inputQtd = document.getElementById('input-qtd');
+            const quantidade = parseInt(inputQtd.value) || 1;
+
+            if (indexSelect === "" || !produtosDisponiveis[indexSelect]) {
+                alert("Selecione um produto válido antes de adicionar!");
+                return;
+            }
+
+            const produtoSelecionado = produtosDisponiveis[indexSelect];
+
+            if (produtoSelecionado.estoque <= 0) {
+                alert("Este produto está esgotado no momento neste ponto de venda!");
+                return;
+            }
+
+            const itemExistente = carrinho.find(item => item.id === produtoSelecionado.id);
+            const qtdAtualNoCarrinho = itemExistente ? itemExistente.quantidade : 0;
+
+            if ((qtdAtualNoCarrinho + quantidade) > produtoSelecionado.estoque) {
+                alert(`Quantidade solicitada ultrapassa o estoque disponível (${produtoSelecionado.estoque} unidades).`);
+                return;
+            }
+
+            if (itemExistente) {
+                itemExistente.quantidade += quantidade;
+            } else {
+                carrinho.push({
+                    id: produtoSelecionado.id,
+                    nome: produtoSelecionado.nome,
+                    preco: produtoSelecionado.preco,
+                    quantidade: quantidade
+                });
+            }
+
+            renderizarCarrinho();
+
+            inputQtd.value = 1;
+            select.selectedIndex = 0;
+            atualizarInterfaceProduto();
+        }
+
+        function removerDoCarrinho(id) {
+            carrinho = carrinho.filter(item => item.id !== id);
+            renderizarCarrinho();
+        }
+
+        function renderizarCarrinho() {
+            const divLista = document.getElementById('lista-carrinho');
+            const spanTotal = document.getElementById('valor-total');
+
+            if (carrinho.length === 0) {
+                divLista.innerHTML = '<span class="carrinho-vazio">Carrinho vazio</span>';
+                spanTotal.innerText = '0,00';
+                return;
+            }
+
+            divLista.innerHTML = '';
+            let totalGeral = 0;
+
+            carrinho.forEach(item => {
+                const subtotal = item.preco * item.quantidade;
+                totalGeral += subtotal;
+
+                const divItem = document.createElement('div');
+                divItem.className = 'item-carrinho';
+                divItem.innerHTML = `
+                    <span class="nome-item">${item.quantidade}x ${item.nome}</span>
+                    <span class="preco-item">R$ ${subtotal.toFixed(2).replace('.', ',')}</span>
+                    <button class="btn-remover" onclick="removerDoCarrinho('${item.id}')" title="Remover item">✕</button>
+                `;
+                divLista.appendChild(divItem);
+            });
+
+            spanTotal.innerText = totalGeral.toFixed(2).replace('.', ',');
+        }
+
+        async function gerarPix() {
+            if (carrinho.length === 0) {
+                alert("Adicione pelo menos um produto ao carrinho antes de prosseguir!");
+                return;
+            }
+
+            const botaoPix = document.querySelector('.btn-pix');
+            botaoPix.disabled = true;
+            botaoPix.innerText = "Gerando QR Code Pix...";
+
+            try {
+                const resposta = await fetch('https://site-vendas-cu7g.onrender.com/gerar-pix', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ local: local, itens: carrinho })
+                });
+
+                const dados = await resposta.json();
+
+                if (resposta.ok && dados.sucesso && dados.qr_code_base64) {
+                    codigoCopiaECola = dados.qr_code;
+                    paymentIdAtual = dados.id;
+
+                    document.getElementById('img-qr-code').src = `data:image/png;base64,${dados.qr_code_base64}`;
+                    document.getElementById('area-qrcode').style.display = 'block';
+
+                    botaoPix.style.display = 'none';
+
+                    carrinho = [];
+                    renderizarCarrinho();
+                } else {
+                    alert("Erro ao gerar o Pix: " + (dados.error || "Tente novamente."));
+                    botaoPix.disabled = false;
+                    botaoPix.innerText = "Gerar PIX para Pagamento";
+                }
+
+            } catch (erro) {
+                console.error("Erro na comunicação:", erro);
+                alert("Erro de conexão ao gerar o pagamento.");
+                botaoPix.disabled = false;
+                botaoPix.innerText = "Gerar PIX para Pagamento";
+            }
+        }
+
+        function copiarPix() {
+            navigator.clipboard.writeText(codigoCopiaECola).then(() => {
+                alert("Código Pix 'Copia e Cola' copiado com sucesso! Cole no aplicativo do seu banco.");
+            }).catch(err => {
+                console.error("Erro ao copiar: ", err);
+                alert("Não foi possível copiar automaticamente. Selecione o código manualmente.");
+            });
+        }
+
+        function toggleFormularioFiscal() {
+            const form = document.getElementById('form-fiscal');
+            form.style.display = form.style.display === 'block' ? 'none' : 'block';
+        }
+
+        async function salvarDadosFiscais() {
+            const nome = document.getElementById('fiscal-nome').value.trim();
+            const cpf = document.getElementById('fiscal-cpf').value.trim();
+            const email = document.getElementById('fiscal-email').value.trim();
+            const whatsapp = document.getElementById('fiscal-whatsapp').value.trim();
+
+            if (!nome && !cpf && !email && !whatsapp) {
+                alert("Preencha pelo menos um dos campos para envio da nota.");
                 return;
             }
 
             try {
-                // Insira aqui a URL do Web App do Google Apps Script
-                const response = await fetch('SUA_URL_DO_GOOGLE_APPS_SCRIPT_AQUI');
-                const todosProdutos = await response.json();
-
-                // 1. FILTRO ESTRITO: Apenas os produtos vinculados ao local da URL
-                const produtosDoLocal = todosProdutos.filter(item => {
-                    const localItem = item.local_id || item.local;
-                    return localItem && localItem.trim().toLowerCase() === localURL.trim().toLowerCase();
+                const resposta = await fetch('https://site-vendas-cu7g.onrender.com/salvar-dados-fiscal', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        payment_id: paymentIdAtual,
+                        nome: nome,
+                        cpf: cpf,
+                        email: email,
+                        whatsapp: whatsapp
+                    })
                 });
 
-                renderizarOpcoes(produtosDoLocal);
-            } catch (error) {
-                console.error("Erro ao carregar produtos:", error);
-                selectProduto.innerHTML = '<option value="">Erro ao carregar lista de produtos</option>';
+                const dados = await resposta.json();
+
+                if (resposta.ok && dados.sucesso) {
+                    alert("Dados fiscais salvos com sucesso! Obrigado.");
+                    document.getElementById('form-fiscal').style.display = 'none';
+                } else {
+                    alert("Erro ao salvar: " + (dados.error || "Tente novamente."));
+                }
+            } catch (erro) {
+                console.error("Erro ao enviar dados fiscais:", erro);
+                alert("Erro de conexão ao salvar os dados fiscais.");
             }
         }
 
-        function renderizarOpcoes(produtos) {
-            selectProduto.innerHTML = '<option value="">--- Selecione seu produto ---</option>';
-
-            if (produtos.length === 0) {
-                selectProduto.innerHTML = '<option value="">Nenhum produto cadastrado para este local</option>';
-                return;
-            }
-
-            produtos.forEach(produto => {
-                const precoFormatado = parseFloat(produto.preco || produto.valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-                
-                // FORMATO LIMPO E ENXUTO: Nome do produto e preço (sem texto de estoque)
-                const nomeProduto = produto.nome_produto || produto.produto || '';
-                const rotulo = `${nomeProduto} — ${precoFormatado}`;
-
-                const option = document.createElement('option');
-                option.value = produto.produto_id;
-                option.textContent = rotulo;
-                option.disabled = false; // Permite a compra mesmo com estoque zero/negativo
-                selectProduto.appendChild(option);
-            });
-        }
-
-        document.addEventListener('DOMContentLoaded', carregarProdutos);
+        carregarProdutos();
     </script>
 </body>
 </html>
