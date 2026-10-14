@@ -345,7 +345,7 @@
         </div>
 
         <div class="footer-assinatura">
-            Autoatendimento by <strong>Panforte</strong> - Versão 1.28
+            Autoatendimento by <strong>Panforte</strong> - Versão 1.29
         </div>
     </div>
 
@@ -377,11 +377,8 @@
                     option.value = index;
                     const precoFormatado = p.preco.toFixed(2).replace('.', ',');
                     
-                    if (p.estoque <= 0) {
-                        option.text = `${p.nome} - R$ ${precoFormatado} (ESGOTADO)`;
-                    } else {
-                        option.text = `${p.nome} - R$ ${precoFormatado} (Estoque: ${p.estoque})`;
-                    }
+                    // FORMATO LIMPO: Apenas o nome do produto e o preço
+                    option.text = `${p.nome} - R$ ${precoFormatado}`;
                     select.appendChild(option);
                 });
 
@@ -408,15 +405,10 @@
                 img.src = prod.imagem || 'HighProtein.jpg';
                 img.style.opacity = "1";
 
-                if (prod.estoque <= 0) {
-                    btnAdicionar.disabled = true;
-                    btnAdicionar.innerText = "Indisponível (Esgotado)";
-                    btnAdicionar.style.backgroundColor = "#cbd5e0";
-                } else {
-                    btnAdicionar.disabled = false;
-                    btnAdicionar.innerText = "Adicionar";
-                    btnAdicionar.style.backgroundColor = "#ed8936";
-                }
+                // Botão sempre ativo para permitir compra mesmo sem estoque registrado
+                btnAdicionar.disabled = false;
+                btnAdicionar.innerText = "Adicionar";
+                btnAdicionar.style.backgroundColor = "#ed8936";
             } else {
                 img.src = 'HighProtein.jpg';
                 img.style.opacity = "0.3";
@@ -439,18 +431,7 @@
 
             const produtoSelecionado = produtosDisponiveis[indexSelect];
 
-            if (produtoSelecionado.estoque <= 0) {
-                alert("Este produto está esgotado no momento neste ponto de venda!");
-                return;
-            }
-
             const itemExistente = carrinho.find(item => item.id === produtoSelecionado.id);
-            const qtdAtualNoCarrinho = itemExistente ? itemExistente.quantidade : 0;
-
-            if ((qtdAtualNoCarrinho + quantidade) > produtoSelecionado.estoque) {
-                alert(`Quantidade solicitada ultrapassa o estoque disponível (${produtoSelecionado.estoque} unidades).`);
-                return;
-            }
 
             if (itemExistente) {
                 itemExistente.quantidade += quantidade;
